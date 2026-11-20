@@ -1,0 +1,18 @@
+version = 1
+state_dir = "ocgo-state"
+
+[server]
+bind = "127.0.0.1"
+port = 8787
+timeout_sec = 180
+max_retries = 0
+retry_window_sec = 0
+
+[identity]
+session_mode = "per_key"
+
+[monitor]
+enabled = false
+
+# No fixed Key or fallback proxy. When running a mock, override ALL three
+# upstream base URLs in a separate, temporary copy before starting Rust.

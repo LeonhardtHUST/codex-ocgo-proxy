@@ -204,7 +204,7 @@ describe("client-facing WebSocket on /v1/responses (issue #681)", () => {
     await new Promise<void>((resolve) => server.once("listening", () => resolve()));
     const addr = server.address() as AddressInfo;
     port = addr.port;
-    wsServer = new ResponsesWebSocketServer({ server, app, accountPool: pool, clientKeyPool });
+    wsServer = new ResponsesWebSocketServer({ server, app, accountPool: pool, clientKeyPool, isOCGoModel: (model) => model.startsWith("ocgo:") });
   });
 
   afterEach(async () => {
@@ -232,6 +232,15 @@ describe("client-facing WebSocket on /v1/responses (issue #681)", () => {
     await expect(connectClient(port, "Bearer wrong-key")).rejects.toMatchObject({
       status: 401,
     });
+  });
+
+  it("rejects OCGo without dispatching an HTTP request", async () => {
+    const { ws } = await connectClient(port);
+    const received = receiveJsonFrames(ws, 1);
+    ws.send(JSON.stringify({ model: "ocgo:kimi-k2.5", input: "Hello", stream: true }));
+    expect(await received).toMatchObject([{ error: { code: "ocgo_unsupported_endpoint" } }]);
+    expect(requestedStreams).toBe(0);
+    ws.close();
   });
 
   it("dispatches a response.create frame and streams events back as WS text frames", async () => {

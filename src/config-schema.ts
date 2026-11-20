@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OCGoConfigSchema } from "./ocgo-config.js";
 
 export const ROTATION_STRATEGIES = ["least_used", "round_robin", "sticky"] as const;
 
@@ -296,6 +297,7 @@ export const ConfigSchema = z.object({
       }),
     ).default({}),
   }).default({}),
+  ocgo: OCGoConfigSchema,
   /** Explicit model → provider name routing table. */
   model_routing: z.record(z.string(), z.string()).default({}),
   /**

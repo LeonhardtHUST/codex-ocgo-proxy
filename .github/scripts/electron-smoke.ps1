@@ -1,4 +1,4 @@
-param()
+param([switch]$Ocgo)
 
 $ErrorActionPreference = "Stop"
 
@@ -45,13 +45,20 @@ try {
     Fail-Smoke "Windows exe not found under $UnpackedDir"
   }
 
-  Write-Host "Launching: $($Binary.FullName) --no-sandbox"
+  $Arguments = @("--no-sandbox")
+  if ($Ocgo) {
+    $Profile = Join-Path $env:TEMP "ocgo-electron-profile-$([guid]::NewGuid())"
+    New-Item -ItemType Directory -Path $Profile | Out-Null
+    $Arguments += @("--user-data-dir=`"$Profile`"", "--disable-gpu", "--enable-logging=stderr")
+  }
+  Write-Host "Launching: $($Binary.FullName) $($Arguments -join ' ')"
   Write-Host "Log: $LogBase"
   Write-Host "Timeout: ${TimeoutSecs}s"
 
   $Process = Start-Process `
     -FilePath $Binary.FullName `
-    -ArgumentList "--no-sandbox" `
+    -ArgumentList $Arguments `
+    -WorkingDirectory $UnpackedDir `
     -RedirectStandardOutput $StdoutLog `
     -RedirectStandardError $StderrLog `
     -PassThru
@@ -67,7 +74,7 @@ try {
     }
 
     if ($Process.HasExited) {
-      Fail-Smoke "App process exited before starting the server (pid=$($Process.Id))"
+      Fail-Smoke "App process exited before starting the server (pid=$($Process.Id), exit=$($Process.ExitCode), hex=$('{0:X8}' -f $Process.ExitCode))"
     }
 
     Start-Sleep -Seconds 1

@@ -1,0 +1,591 @@
+name: OCGO Release (unofficial fork build)
+
+# Fork-only, unofficial release lane for LeonhardtHUST/codex-ocgo-proxy.
+# It never touches the inherited upstream workflows: it is triggered by its own
+# `ocgo-v*` tag namespace (the inherited `v*` filters never match it), runs in
+# this repository only, and writes nothing except a release inside this repo.
+#
+# Channel rules:
+#   - release source: an explicit annotated tag `ocgo-v<semver>-beta.<n>` whose
+#     commit is reachable from origin/dev (verified in the validate job);
+#   - artifacts: Windows x64 NSIS installer + Linux x64 AppImage, both built
+#     from the tagged commit, labelled "unofficial", signed by nobody;
+#   - the Electron updater is compiled out (OCGO_BUILD=1) and the packaging
+#     config carries no GitHub `publish` block, so a build has no update feed;
+#   - the GitHub Release is created as a draft only after every build and smoke
+#     test passed, assets and checksums are verified, then it is published as a
+#     prerelease. Existing tags/releases are never overwritten (`--clobber` is
+#     deliberately absent everywhere).
+#
+# PRs and manual dispatches exercise the same build/smoke pipeline but can
+# never publish (publish requires a tag push).
+
+on:
+  push:
+    tags:
+      - "ocgo-v*"
+  pull_request:
+    paths:
+      - ".github/workflows/ocgo-release.yml"
+      - ".github/scripts/**"
+      - "packages/electron/**"
+      - "native/**"
+      - "src/**"
+      - "shared/**"
+      - "tests/**"
+      - "web/**"
+      - "config/**"
+      - "package.json"
+      - "package-lock.json"
+      - "LICENCE"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ocgo-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ── Gate 1: tag provenance, dependency locks, OCGo regression ───────────
+  validate:
+    name: Validate tag, dependencies and OCGo regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      source_sha: ${{ steps.meta.outputs.source_sha }}
+      short_sha: ${{ steps.meta.outputs.short_sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve release metadata
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG=""
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            case "${GITHUB_REF:-}" in
+              refs/tags/ocgo-v*) ;;
+              *)
+                echo "::error::unexpected push ref ${GITHUB_REF:-}; only ocgo-v* tags may release"
+                exit 1
+                ;;
+            esac
+            TAG="$GITHUB_REF_NAME"
+            if ! printf '%s' "$TAG" | grep -Eq '^ocgo-v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$'; then
+              echo "::error::tag '$TAG' must match ocgo-v<semver>-beta.<n> (e.g. ocgo-v2.1.26-beta.1)"
+              exit 1
+            fi
+            VERSION="${TAG#ocgo-v}"
+            for f in LICENCE OCGO_LOCAL.md config/ocgo.local.example.yaml config/ocgo2api.example.toml; do
+              test -f "$f" || { echo "::error::missing $f in the tagged commit"; exit 1; }
+            done
+          else
+            # PR/dispatch runs build the current ref; the version only labels the
+            # throwaway artifacts and must still be a valid semver for packers.
+            VERSION="0.0.0-ocgo.validation.${GITHUB_RUN_NUMBER}"
+          fi
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          SHORT_SHA="$(git rev-parse --short=12 HEAD)"
+          echo "event=$GITHUB_EVENT_NAME tag='$TAG' version='$VERSION' source_sha=$SOURCE_SHA"
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+            echo "source_sha=$SOURCE_SHA"
+            echo "short_sha=$SHORT_SHA"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag points at verified origin/dev history
+        if: steps.meta.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.meta.outputs.tag }}"
+          SOURCE_SHA="${{ steps.meta.outputs.source_sha }}"
+          TAG_REF="refs/tags/$TAG"
+          # Annotated tags are tag objects; peel to the commit they point at.
+          # GitHub's GITHUB_SHA may be the tag object for annotated pushes, so it
+          # is never used for provenance — HEAD and the peeled tag are.
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          TAG_SHA="$(git rev-parse "$TAG_REF^{commit}")"
+          TAG_TYPE="$(git cat-file -t "$TAG_REF")"
+          echo "tag type=$TAG_TYPE tag_commit=$TAG_SHA HEAD=$SOURCE_SHA"
+          case "$TAG_TYPE" in
+            tag|commit) ;;
+            *)
+              echo "::error::$TAG_REF does not peel to a commit"
+              exit 1
+              ;;
+          esac
+          if [ "$TAG_SHA" != "$SOURCE_SHA" ]; then
+            echo "::error::tag $TAG points at $TAG_SHA but the workflow checked out $SOURCE_SHA"
+            exit 1
+          fi
+          # GitHub compare API against the real origin/dev: "ahead"/"identical"
+          # mean the tagged commit is already contained in dev history.
+          STATUS=$(gh api "repos/$GITHUB_REPOSITORY/compare/$TAG_SHA...dev" --jq '.status')
+          echo "compare $TAG_SHA...dev => $STATUS"
+          case "$STATUS" in
+            ahead|identical) ;;
+            *)
+              echo "::error::$TAG_SHA is not contained in origin/dev (status=$STATUS)"
+              echo "::error::only commits already merged into dev may be released"
+              exit 1
+              ;;
+          esac
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::release $TAG already exists; refusing to overwrite"
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            native/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --prefer-offline --no-audit --no-fund
+
+      - name: Install web dependencies
+        run: cd web && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build core (web + tsc)
+        run: npm run build
+
+      - name: Verify node:sqlite backend (Node 22)
+        run: |
+          node -e "const { DatabaseSync } = require('node:sqlite'); const db = new DatabaseSync(':memory:'); db.exec('CREATE TABLE t (x INTEGER)'); db.prepare('INSERT INTO t VALUES (1)').run(); const n = db.prepare('SELECT COUNT(*) AS c FROM t').get().c; db.close(); if (n !== 1) throw new Error('unexpected row count: ' + n); console.log('node:sqlite OK on', process.version);"
+
+      - name: Locked dependency and update-boundary tests
+        run: |
+          npx vitest run \
+            tests/unit/ci/package-boundary.test.ts \
+            tests/unit/update-scripts-path.test.ts \
+            tests/unit/update-checker.test.ts \
+            tests/unit/self-update.test.ts
+
+      - name: OCGo unit and app-restart regression
+        run: |
+          npx vitest run \
+            tests/unit/auth/ocgo-pool.test.ts \
+            tests/unit/auth/ocgo-usage.test.ts \
+            tests/unit/routes/ocgo-admin.test.ts \
+            tests/unit/routes/ocgo-responses.test.ts \
+            tests/unit/proxy/ocgo-upstream.test.ts \
+            tests/unit/proxy/ocgo-loopback-contract.test.ts \
+            tests/integration/ocgo-app-restart.test.ts
+
+      - name: Web front-end regression (OCGo page)
+        run: cd web && npx vitest run src/pages/OCGoKeysPage.test.tsx
+
+  # ── Build + smoke: Windows x64 ──────────────────────────────────────────
+  build-windows:
+    name: Build Windows x64 (unofficial)
+    needs: validate
+    runs-on: windows-latest
+    timeout-minutes: 45
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
+    env:
+      OCGO_BUILD: "1"
+      FULL_VERSION: ${{ needs.validate.outputs.version }}
+      RELEASE_DIR: packages/electron/release-ocgo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            native/package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci --ignore-scripts --prefer-offline --no-audit --no-fund
+
+      - name: Install web dependencies
+        run: cd web && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build core (web + tsc)
+        run: npm run build
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Windows x64 native addon
+        run: |
+          npm --prefix native ci --prefer-offline --no-audit --no-fund
+          npm --prefix native run build
+
+      - name: Bundle Electron main and server
+        working-directory: packages/electron
+        run: node electron/build.mjs
+
+      - name: Prepare pack resources
+        working-directory: packages/electron
+        run: node electron/prepare-pack.mjs
+
+      - name: Stamp fork version
+        run: |
+          node -e "const fs=require('fs');const p='packages/electron/package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));j.version=process.env.FULL_VERSION;fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n');"
+          node -p "require('./packages/electron/package.json').version"
+
+      - name: Embed non-commercial licence into the payload
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Copy-Item -LiteralPath "LICENCE" -Destination "packages/electron/LICENCE" -Force
+          if (-not (Test-Path -LiteralPath "packages/electron/LICENCE")) {
+            throw "LICENCE was not copied into the Electron project"
+          }
+          Get-Item -LiteralPath "packages/electron/LICENCE" | Select-Object FullName, Length
+
+      - name: Package Windows installer
+        working-directory: packages/electron
+        shell: bash
+        run: npx electron-builder --config electron-builder.ocgo.yml --win --x64 --publish never
+
+      - name: Assert no upstream update feed and licence embedded
+        shell: bash
+        run: |
+          test ! -e "$RELEASE_DIR/win-unpacked/resources/app-update.yml"
+          test -f "$RELEASE_DIR/win-unpacked/resources/LICENCE"
+
+      - name: Apply smoke-only config overlay (unpacked tree, not the installer)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $cfg = Join-Path $env:GITHUB_WORKSPACE "packages/electron/release-ocgo/win-unpacked/resources/app.asar.unpacked/config"
+          node packages/electron/electron/apply-ocgo-smoke-config.mjs "$cfg"
+
+      - name: Prepare isolated smoke home
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          foreach ($d in @("ocgo-smoke-home","ocgo-smoke-appdata","ocgo-smoke-localappdata","ocgo-smoke-temp")) {
+            New-Item -ItemType Directory -Force -Path (Join-Path $env:RUNNER_TEMP $d) | Out-Null
+          }
+
+      - name: Smoke test packaged app
+        shell: pwsh
+        env:
+          SMOKE_LOG: ${{ runner.temp }}/ocgo-smoke-win.log
+          HOME: ${{ runner.temp }}/ocgo-smoke-home
+          USERPROFILE: ${{ runner.temp }}/ocgo-smoke-home
+          CODEX_HOME: ${{ runner.temp }}/ocgo-smoke-home
+          ELECTRON_ENABLE_LOGGING: "1"
+        run: ./.github/scripts/electron-smoke.ps1 -Ocgo
+
+      - name: Upload smoke log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocgo-win-smoke-log
+          path: ${{ runner.temp }}/ocgo-smoke-win.log*
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocgo-win-x64
+          path: ${{ env.RELEASE_DIR }}/*.exe
+          if-no-files-found: error
+          retention-days: 7
+
+  # ── Build + smoke: Linux x64 ────────────────────────────────────────────
+  build-linux:
+    name: Build Linux x64 (unofficial)
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
+    env:
+      OCGO_BUILD: "1"
+      FULL_VERSION: ${{ needs.validate.outputs.version }}
+      RELEASE_DIR: packages/electron/release-ocgo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            native/package-lock.json
+
+      - name: Install AppImage runtime and virtual display
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libfuse2 xvfb
+
+      - name: Install workspace dependencies
+        run: npm ci --ignore-scripts --prefer-offline --no-audit --no-fund
+
+      - name: Install web dependencies
+        run: cd web && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build core (web + tsc)
+        run: npm run build
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: native/target
+          key: native-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/Cargo.lock') }}
+          restore-keys: native-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Build Linux x64 native addon
+        run: |
+          npm --prefix native ci --prefer-offline --no-audit --no-fund
+          npm --prefix native run build
+
+      - name: Bundle Electron main and server
+        working-directory: packages/electron
+        run: node electron/build.mjs
+
+      - name: Prepare pack resources
+        working-directory: packages/electron
+        run: node electron/prepare-pack.mjs
+
+      - name: Stamp fork version
+        run: |
+          node -e "const fs=require('fs');const p='packages/electron/package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));j.version=process.env.FULL_VERSION;fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n');"
+          node -p "require('./packages/electron/package.json').version"
+
+      - name: Embed non-commercial licence into the payload
+        run: cp LICENCE packages/electron/LICENCE
+
+      - name: Package Linux AppImage
+        working-directory: packages/electron
+        run: npx electron-builder --config electron-builder.ocgo.yml --linux --x64 --publish never
+
+      - name: Assert no upstream update feed and licence embedded
+        run: |
+          test ! -e "$RELEASE_DIR/linux-unpacked/resources/app-update.yml"
+          test -f "$RELEASE_DIR/linux-unpacked/resources/LICENCE"
+
+      - name: Verify a single AppImage was built
+        run: |
+          shopt -s nullglob
+          files=("$RELEASE_DIR"/*.AppImage)
+          test "${#files[@]}" -eq 1
+          test -s "${files[0]}"
+
+      - name: Apply smoke-only config overlay (unpacked tree, not the AppImage)
+        run: |
+          node packages/electron/electron/apply-ocgo-smoke-config.mjs \
+            "$RELEASE_DIR/linux-unpacked/resources/app.asar.unpacked/config"
+
+      - name: Prepare isolated smoke home
+        run: |
+          mkdir -p "$RUNNER_TEMP/ocgo-smoke-home" "$RUNNER_TEMP/ocgo-smoke-config" \
+            "$RUNNER_TEMP/ocgo-smoke-cache" "$RUNNER_TEMP/ocgo-smoke-data" "$RUNNER_TEMP/ocgo-smoke-tmp"
+
+      - name: Smoke test packaged app
+        env:
+          SMOKE_LOG: ${{ runner.temp }}/ocgo-smoke-linux.log
+          HOME: ${{ runner.temp }}/ocgo-smoke-home
+          XDG_CONFIG_HOME: ${{ runner.temp }}/ocgo-smoke-config
+          XDG_CACHE_HOME: ${{ runner.temp }}/ocgo-smoke-cache
+          XDG_DATA_HOME: ${{ runner.temp }}/ocgo-smoke-data
+          TMPDIR: ${{ runner.temp }}/ocgo-smoke-tmp
+        run: bash packages/electron/electron/ocgo-smoke-linux.sh
+
+      - name: Upload smoke log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocgo-linux-smoke-log
+          path: ${{ runner.temp }}/ocgo-smoke-linux.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocgo-linux-x64
+          path: ${{ env.RELEASE_DIR }}/*.AppImage
+          if-no-files-found: error
+          retention-days: 7
+
+  # ── Publish: draft first, verify everything, then flip to prerelease ────
+  publish:
+    name: Publish draft as prerelease
+    needs: [validate, build-windows, build-linux]
+    if: >-
+      github.event_name == 'push' &&
+      startsWith(github.ref, 'refs/tags/ocgo-v') &&
+      github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The only job allowed to write. Everything upstream of it is contents:read.
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ needs.validate.outputs.tag }}
+      VERSION: ${{ needs.validate.outputs.version }}
+      SHORT_SHA: ${{ needs.validate.outputs.short_sha }}
+    steps:
+      - name: Checkout (licence and metadata only)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ocgo-*-x64
+          path: dist
+          merge-multiple: true
+
+      - name: Verify built artifacts
+        run: |
+          set -euo pipefail
+          test "$(find dist -maxdepth 1 -name '*.exe' | wc -l)" -eq 1
+          test "$(find dist -maxdepth 1 -name '*.AppImage' | wc -l)" -eq 1
+          find dist -maxdepth 1 -type f -printf '%f\n' | sort
+
+      - name: Bundle docs, licence and sample configs
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ocgo-docs"
+          cp LICENCE OCGO_LOCAL.md config/ocgo.local.example.yaml config/ocgo2api.example.toml "$RUNNER_TEMP/ocgo-docs/"
+          (cd "$RUNNER_TEMP/ocgo-docs" && zip -q -r "$GITHUB_WORKSPACE/dist/ocgo-docs.zip" .)
+          unzip -l dist/ocgo-docs.zip
+          cp LICENCE dist/LICENCE
+
+      - name: Write and verify checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum ./*.exe ./*.AppImage LICENCE ocgo-docs.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          sha256sum -c SHA256SUMS.txt
+
+      - name: Write release notes
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/release-notes.md" <<EOF
+          **Unofficial fork build — not affiliated with, endorsed by, or supported by the upstream project.**
+
+          OCGo build of Codex Proxy for Windows x64 and Linux x64.
+
+          - Tag: \`$TAG\`
+          - Version: \`$VERSION\`
+          - Source commit: \`$SHORT_SHA\` (verified reachable from \`dev\`)
+          - License: Codex Proxy Non-Commercial Licence 1.0 (embedded in the app payload and attached below)
+          - Docs bundle: \`ocgo-docs.zip\` (licence, \`OCGO_LOCAL.md\`, \`ocgo.local.example.yaml\`, \`ocgo2api.example.toml\`)
+
+          ## Install
+
+          - Windows: run the \`*.exe\` installer. It is unsigned, so SmartScreen will warn; verify \`SHA256SUMS.txt\` before running.
+          - Linux: make the \`*.AppImage\` executable (\`chmod +x\`) and run it. It is unsigned.
+
+          ## Verify
+
+          \`\`\`sh
+          sha256sum -c SHA256SUMS.txt
+          \`\`\`
+
+          ## Scope
+
+          Windows/Linux x64 Electron installers only. No macOS build, no Lite portable zip, no npm
+          packages, no Docker images. The in-app updater is compiled out of this build and it has no
+          GitHub update feed.
+
+          ## Integrity
+
+          SHA-256 digests for every attached asset are in \`SHA256SUMS.txt\`, which is attached and
+          listed below.
+          EOF
+          cat "$RUNNER_TEMP/release-notes.md"
+
+      - name: Refuse to touch an existing release
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::release $TAG already exists; refusing to overwrite"
+            exit 1
+          fi
+
+      - name: Create draft release
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --draft \
+            --prerelease \
+            --title "Codex Proxy OCGo (unofficial) $VERSION" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"
+
+      - name: Upload assets (never clobber)
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            dist/*.exe dist/*.AppImage dist/LICENCE dist/ocgo-docs.zip dist/SHA256SUMS.txt
+
+      - name: Verify every asset before publishing
+        run: |
+          set -euo pipefail
+          cd dist
+          ls -1 ./*.exe ./*.AppImage LICENCE ocgo-docs.zip SHA256SUMS.txt | sed 's|^\./||' | sort > "$RUNNER_TEMP/expected-assets.txt"
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' \
+            | sort > "$RUNNER_TEMP/actual-assets.txt"
+          diff -u "$RUNNER_TEMP/expected-assets.txt" "$RUNNER_TEMP/actual-assets.txt"
+          echo "all $(wc -l < "$RUNNER_TEMP/expected-assets.txt") assets present"
+
+      - name: Re-download remote assets and verify checksums
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/remote-assets"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/remote-assets"
+          cd "$RUNNER_TEMP/remote-assets"
+          ls -l
+          sha256sum -c SHA256SUMS.txt
+
+      - name: Publish prerelease
+        run: |
+          set -euo pipefail
+          gh release edit "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft=false \
+            --prerelease
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" = "false"
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isPrerelease --jq '.isPrerelease')" = "true"

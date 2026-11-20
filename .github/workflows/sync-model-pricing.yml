@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   sync:
+    if: github.repository == 'icebear0828/codex-proxy'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout dev branch

@@ -252,8 +252,17 @@ function triggerFullUpdate(codexSourcePath: string | null = getConfiguredCodexSo
   });
 }
 
+declare const __OCGO_BUILD__: boolean;
+const IS_OCGO_BUILD = typeof __OCGO_BUILD__ !== "undefined" && __OCGO_BUILD__;
+
 export async function checkForUpdate(): Promise<UpdateState> {
   const current = loadCurrentConfig();
+  if (IS_OCGO_BUILD) {
+    return {
+      last_check: new Date().toISOString(), latest_version: null, latest_build: null, download_url: null,
+      update_available: false, current_version: current.app_version, current_build: current.build_number,
+    };
+  }
   const res = await curlFetchGet(APPCAST_URL);
   if (!res.ok) {
     throw new Error(`Failed to fetch appcast: ${res.status}`);
@@ -326,6 +335,7 @@ function scheduleNextPoll(): void {
  * Runs an initial check immediately (non-blocking), then polls with jittered intervals.
  */
 export function startUpdateChecker(): void {
+  if (IS_OCGO_BUILD) return;
   // Initial check (non-blocking)
   checkForUpdate().catch((err) => {
     console.warn(`[UpdateChecker] Initial check failed: ${err instanceof Error ? err.message : err}`);

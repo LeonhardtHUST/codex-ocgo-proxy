@@ -1,0 +1,8 @@
+# Merge into data/local.yaml. Do not put Go credentials in this file.
+ocgo:
+  enabled: false
+  base_url: http://127.0.0.1:8787/v1
+  timeout_seconds: 180
+
+# Leave existing server/API key settings intact. For a new test instance only,
+# configure a non-default App master key before enabling OCGo.

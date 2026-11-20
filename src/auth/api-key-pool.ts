@@ -16,6 +16,7 @@ import {
 import { resolve, dirname } from "path";
 import { randomBytes } from "crypto";
 import { getDataDir } from "../paths.js";
+import { hasOCGoModelPrefix } from "../ocgo-config.js";
 import type { ApiKeyProvider } from "./api-key-catalog.js";
 import { isBuiltinProvider, PROVIDER_CATALOG } from "./api-key-catalog.js";
 
@@ -119,6 +120,12 @@ export class ApiKeyPool {
   private entries: ApiKeyEntry[];
   private persistence: ApiKeyPersistence;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  private ocgoNamespaceReserved = false;
+
+  /** Called at startup only after namespace conflicts have been checked. */
+  reserveOCGoNamespace(): void {
+    this.ocgoNamespaceReserved = true;
+  }
 
   constructor(persistence?: ApiKeyPersistence) {
     this.persistence = persistence ?? createFsApiKeyPersistence();
@@ -201,6 +208,9 @@ export class ApiKeyPool {
     wire?: ApiKeyWire;
     proxyId?: string | null;
   }): ApiKeyEntry {
+    if (this.ocgoNamespaceReserved && hasOCGoModelPrefix(input.model)) {
+      throw new Error("The ocgo: model prefix is reserved for OCGo");
+    }
     const baseUrl = isBuiltinProvider(input.provider)
       ? PROVIDER_CATALOG[input.provider].defaultBaseUrl
       : input.baseUrl ?? "";

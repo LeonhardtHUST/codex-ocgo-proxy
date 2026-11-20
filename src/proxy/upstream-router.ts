@@ -2,6 +2,7 @@
  * UpstreamRouter — routes a model name to the appropriate UpstreamAdapter.
  *
  * Priority (highest to lowest):
+ *   - When enabled, the reserved OCGo namespace is resolved without selecting credentials.
  *   0. ApiKeyPool entry matching the exact model name
  *   1. Explicit provider prefix: "openai:gpt-4o", "anthropic:claude-3-5-sonnet"
  *   2. Model aliases: { "claude-opus-4-7": "gpt-5.5" }
@@ -14,7 +15,8 @@
 
 import type { UpstreamAdapter } from "./upstream-adapter.js";
 import type { ApiKeyPool, ApiKeyEntry } from "../auth/api-key-pool.js";
-import { getModelAliases, getModelInfo, stripKnownModelSuffixes } from "../models/model-store.js";
+import { getModelAliases, getModelCatalog, getModelInfo, stripKnownModelSuffixes } from "../models/model-store.js";
+import { hasOCGoModelPrefix, isOCGoModelId, OCGO_MODEL_PREFIX } from "../ocgo-config.js";
 
 /** Factory that creates an UpstreamAdapter for a given ApiKeyEntry. */
 export type AdapterFactory = (entry: ApiKeyEntry) => UpstreamAdapter;
@@ -23,11 +25,13 @@ export type UpstreamRouteMatch =
   | { kind: "api-key"; adapter: UpstreamAdapter; entry: ApiKeyEntry; resolvedModel?: string }
   | { kind: "adapter"; adapter: UpstreamAdapter; resolvedModel?: string }
   | { kind: "codex"; adapter?: UpstreamAdapter; resolvedModel?: string }
+  | { kind: "ocgo"; adapter?: never; resolvedModel: string; modelId?: string }
   | { kind: "not-found" };
 
 export class UpstreamRouter {
   private apiKeyPool: ApiKeyPool | null = null;
   private adapterFactory: AdapterFactory | null = null;
+  private ocgoEnabled = false;
   /** Cache: apiKeyEntry.id → adapter instance. Invalidated when key or proxyId changes. */
   private dynamicAdapters = new Map<string, { apiKey: string; proxyId?: string | null; adapter: UpstreamAdapter }>();
 
@@ -52,12 +56,35 @@ export class UpstreamRouter {
 
   /** Attach the runtime API key pool for dynamic model resolution. */
   setApiKeyPool(pool: ApiKeyPool, factory: AdapterFactory): void {
+    if (this.ocgoEnabled) throw new Error("Attach the API key pool before enabling OCGo");
     this.apiKeyPool = pool;
     this.adapterFactory = factory;
   }
 
+  /** Opt in at startup. An existing name must be migrated explicitly, not hijacked. */
+  enableOCGoNamespace(): void {
+    if (this.adapters.has("ocgo") ||
+        Object.entries(this.modelRouting).some(([model, provider]) => hasOCGoModelPrefix(model) || provider === "ocgo") ||
+        Object.entries(getModelAliases()).some(([alias, target]) => hasOCGoModelPrefix(alias) || hasOCGoModelPrefix(target)) ||
+        getModelCatalog().some(({ id }) => hasOCGoModelPrefix(id)) ||
+        this.apiKeyPool?.getAll().some(({ model }) => hasOCGoModelPrefix(model))) {
+      throw new Error("Cannot enable OCGo: migrate existing ocgo: model names, alias bindings or the ocgo Custom provider first");
+    }
+    this.apiKeyPool?.reserveOCGoNamespace();
+    this.ocgoEnabled = true;
+  }
+
+  isOCGoModel(model: string): boolean {
+    return this.ocgoEnabled && hasOCGoModelPrefix(model);
+  }
+
   resolveMatch(model: string): UpstreamRouteMatch {
-    return this.resolveMatchInternal(model.trim(), new Set<string>());
+    const normalized = model.trim();
+    if (this.isOCGoModel(normalized)) {
+      const id = normalized.slice(OCGO_MODEL_PREFIX.length);
+      return { kind: "ocgo", resolvedModel: normalized, ...(isOCGoModelId(id) ? { modelId: id } : {}) };
+    }
+    return this.resolveMatchInternal(normalized, new Set<string>());
   }
 
   recordApiKeyUsage(entryId: string, usage: { input_tokens?: number; output_tokens?: number }, imageRequest = false): void {
@@ -65,6 +92,8 @@ export class UpstreamRouter {
   }
 
   private resolveMatchInternal(model: string, seenAliases: Set<string>): UpstreamRouteMatch {
+    // A runtime alias must not bypass the explicit OCGo model and its client ACL.
+    if (this.ocgoEnabled && hasOCGoModelPrefix(model)) return { kind: "not-found" };
     const explicitProvider = this.splitExplicitProvider(model);
 
     if (this.apiKeyPool && this.adapterFactory) {

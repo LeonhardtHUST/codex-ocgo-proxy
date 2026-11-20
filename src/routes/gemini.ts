@@ -5,6 +5,7 @@
  * POST /v1beta/models/{model}:countTokens — local token estimate (no upstream)
  */
 
+import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
 import { Hono } from "hono";
 import type { StatusCode } from "hono/utils/http-status";
 import type { GeminiErrorResponse } from "../types/gemini.js";
@@ -199,6 +200,8 @@ export function createGeminiRoutes(
         makeError(403, modelCheck.message || "Model not allowed", "PERMISSION_DENIED"),
       );
     }
+
+    if (upstreamRouter?.isOCGoModel?.(geminiModel)) return unsupportedOCGoEndpoint(c);
 
     // countTokens is answered locally — it must never reach the upstream and
     // does not require an authenticated account (google-genai SDKs call it

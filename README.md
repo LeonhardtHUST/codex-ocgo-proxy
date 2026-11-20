@@ -63,6 +63,8 @@
 
 只需一个 ChatGPT 账号（或接入第三方 API 中转站），配合本代理即可在本地搭建一个专属的 AI 编程助手网关。
 
+OCGo 默认关闭；如需接入同机 OpenCode Go 后端，参见 [OCGo 同机部署与回滚](OCGO_LOCAL.md)。
+
 ## 🚀 快速开始
 
 > **前置条件**：你需要一个 ChatGPT 账号（免费账号即可）。如果还没有，先去 [chat.openai.com](https://chat.openai.com) 注册一个。

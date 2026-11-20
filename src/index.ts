@@ -56,6 +56,9 @@ import { OpenAIUpstream } from "./proxy/openai-upstream.js";
 import { AnthropicUpstream } from "./proxy/anthropic-upstream.js";
 import { GeminiUpstream } from "./proxy/gemini-upstream.js";
 import { ApiKeyPool } from "./auth/api-key-pool.js";
+import { OCGoKeyStore } from "./auth/ocgo-key-store.js";
+import { createOCGoAdminRoutes } from "./routes/admin/ocgo.js";
+import { OCGoPool } from "./auth/ocgo-pool.js";
 import { ClientKeyPool } from "./auth/client-key-pool.js";
 import { FallbackUpstreamStore } from "./auth/fallback-upstream.js";
 import { createApiKeyRoutes } from "./routes/api-keys.js";
@@ -203,6 +206,9 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   const apiKeyPool = new ApiKeyPool();
   const hasApiKeys = apiKeyPool.getAll().length > 0;
   const upstreamRouter = createRuntimeUpstreamRouter(adapters, cfg.model_routing, apiKeyPool, proxyPool);
+  const ocgoStore = new OCGoKeyStore();
+  const ocgo = { config: cfg.ocgo, pool: new OCGoPool(ocgoStore) };
+  if (ocgo.config?.enabled) upstreamRouter.enableOCGoNamespace();
   if (hasApiKeys) console.log(`[Init] API key pool: ${apiKeyPool.getAll().length} key(s) loaded`);
 
   // Daily memo model-list refresher (opt-out via local.yaml: api_keys.memo_auto_refresh: false)
@@ -247,10 +253,10 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   const chatRoutes = createChatRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore);
   const messagesRoutes = createMessagesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore);
   const geminiRoutes = createGeminiRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore);
-  const responsesRoutes = createResponsesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore);
+  const responsesRoutes = createResponsesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore, ocgo);
   const imagesRoutes = createImagesRoutes(accountPool, cookieJar, proxyPool, clientKeyPool, upstreamRouter);
   const apiKeyRoutes = createApiKeyRoutes(apiKeyPool, apiKeyModelCache, memoStore, proxyPool);
-  const embeddingsRoutes = createEmbeddingsRoutes(accountPool, apiKeyPool, clientKeyPool, proxyPool);
+  const embeddingsRoutes = createEmbeddingsRoutes(accountPool, apiKeyPool, clientKeyPool, proxyPool, upstreamRouter);
   const proxyRoutes = createProxyRoutes(proxyPool, accountPool);
   const usageStats = new UsageStatsStore();
   usageStats.recoverBaseline(accountPool);
@@ -261,6 +267,11 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   app.route("/", authRoutes);
   app.route("/", accountRoutes);
   app.route("/", apiKeyRoutes);
+  app.route("/", createOCGoAdminRoutes({
+    ...ocgo,
+    store: ocgoStore,
+    getMasterKey: () => getConfig().server.proxy_api_key ?? accountPool.getProxyApiKey() ?? null,
+  }));
   app.route("/", embeddingsRoutes);
   app.route("/", chatRoutes);
   app.route("/", messagesRoutes);
@@ -343,6 +354,7 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
     app,
     accountPool,
     clientKeyPool,
+    isOCGoModel: (model) => upstreamRouter.isOCGoModel(model),
   });
 
   // `serve()` returns synchronously before `listen()` actually binds.
@@ -378,6 +390,7 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
         cookieJar.destroy();
         accountPool.destroy();
         apiKeyPool.destroy();
+        clientKeyPool.destroy();
         resolve();
       });
     });

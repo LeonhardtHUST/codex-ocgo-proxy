@@ -13,6 +13,7 @@ import { ProxyPool } from "./components/ProxyPool";
 import { Footer } from "./components/Footer";
 import { Sidebar } from "./components/Sidebar";
 import { ApiKeyManager } from "./components/ApiKeyManager";
+import { OCGoKeysPage } from "./pages/OCGoKeysPage";
 import { ProxySettings } from "./pages/ProxySettings";
 import { AccountManagement } from "./pages/AccountManagement";
 import { UsageStats } from "./pages/UsageStats";
@@ -253,6 +254,10 @@ function Dashboard() {
 
           {activeTab === "#/api-keys" && (
             <ApiKeyManager />
+          )}
+
+          {activeTab === "#/ocgo" && (
+            <OCGoKeysPage masterApiKey={status.apiKey} />
           )}
 
           {activeTab === "#/proxies" && (

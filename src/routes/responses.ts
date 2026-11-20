@@ -35,6 +35,7 @@ import {
   sanitizeClientMetadata,
 } from "../proxy/openai-subagent.js";
 import { PASSTHROUGH_FORMAT } from "./responses-passthrough.js";
+import { handleOCGoResponses, unsupportedOCGoEndpoint, type OCGoResponsesOptions } from "./ocgo-responses.js";
 import { handleCompact } from "./responses-compact.js";
 import { handleCodexAuxiliaryJson } from "./codex-auxiliary.js";
 import {
@@ -130,6 +131,7 @@ export function createResponsesRoutes(
   upstreamRouter?: UpstreamRouter,
   clientKeyPool?: ClientKeyPool,
   fallbackUpstream?: FallbackUpstreamStore,
+  ocgo?: OCGoResponsesOptions,
 ): Hono {
   const app = new Hono();
   // Register errorHandler locally so that when testing this router in isolation (e.g. unit tests),
@@ -162,6 +164,11 @@ export function createResponsesRoutes(
       ?? (isRequestableModel(rawModel)
         ? { kind: "codex" as const }
         : { kind: "not-found" as const });
+
+    if (routeMatch.kind === "ocgo") {
+      if (c.req.path.endsWith("/review")) return unsupportedOCGoEndpoint(c);
+      return handleOCGoResponses(c, body, routeMatch, ocgo);
+    }
 
     if (routeMatch.kind === "not-found") {
       c.status(404);
@@ -398,6 +405,7 @@ export function createResponsesRoutes(
     }
 
     const routeMatch = upstreamRouter?.resolveMatch(rawModel);
+    if (routeMatch?.kind === "ocgo") return unsupportedOCGoEndpoint(c);
     const allowUnauthenticated = routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter";
     const authErr = checkAuth(c, accountPool, allowUnauthenticated);
     if (authErr) return authErr;
@@ -455,6 +463,7 @@ export function createResponsesRoutes(
     }
 
     const routeMatch = upstreamRouter?.resolveMatch(rawModel);
+    if (routeMatch?.kind === "ocgo") return unsupportedOCGoEndpoint(c);
     const allowUnauthenticated = routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter";
     const authErr = checkAuth(c, accountPool, allowUnauthenticated);
     if (authErr) return authErr;

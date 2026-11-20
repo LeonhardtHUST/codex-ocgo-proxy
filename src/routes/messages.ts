@@ -3,6 +3,7 @@
  * POST /v1/messages — compatible with Claude Code CLI and other Anthropic clients.
  */
 
+import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
 import { Hono, type Context } from "hono";
 import type { StatusCode } from "hono/utils/http-status";
 import { AnthropicCountTokensRequestSchema, AnthropicMessagesRequestSchema } from "../types/anthropic.js";
@@ -132,6 +133,7 @@ export function createMessagesRoutes(
       return c.json(makeError("permission_error", modelCheck.message || "Model not allowed"));
     }
 
+    if (upstreamRouter?.isOCGoModel?.(parsed.data.model)) return unsupportedOCGoEndpoint(c);
     return c.json({ input_tokens: estimateCountTokens(parsed.data) });
   });
 
@@ -154,6 +156,7 @@ export function createMessagesRoutes(
     }
 
     const routeMatch = upstreamRouter?.resolveMatch(req.model);
+    if (routeMatch?.kind === "ocgo") return unsupportedOCGoEndpoint(c);
     const allowUnauthenticated = routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter";
 
     // Auth check (a configured fallback upstream apikey is a valid last-resort).

@@ -1,3 +1,4 @@
+import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
 import { Hono } from "hono";
 import type { Context } from "hono";
 import { ChatCompletionRequestSchema } from "../types/openai.js";
@@ -142,6 +143,7 @@ export function createChatRoutes(
       ? { kind: "codex" as const }
       : { kind: "not-found" as const });
 
+    if (routeMatch.kind === "ocgo") return unsupportedOCGoEndpoint(c);
     if (routeMatch.kind === "not-found") {
       c.status(404);
       return c.json(formatModelNotFound(req.model));

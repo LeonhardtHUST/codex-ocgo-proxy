@@ -63,6 +63,7 @@ export interface ResponsesWebSocketServerOptions {
   app: Hono;
   accountPool: AccountPool;
   clientKeyPool?: ClientKeyPool;
+  isOCGoModel?: (model: string) => boolean;
 }
 
 export class ResponsesWebSocketServer {
@@ -70,6 +71,7 @@ export class ResponsesWebSocketServer {
   private readonly app: Hono;
   private readonly accountPool: AccountPool;
   private readonly clientKeyPool?: ClientKeyPool;
+  private readonly isOCGoModel?: (model: string) => boolean;
   private readonly wss: WebSocketServer;
   private readonly onUpgradeBound: (req: IncomingMessage, socket: Duplex, head: Buffer) => void;
   private closed = false;
@@ -79,6 +81,7 @@ export class ResponsesWebSocketServer {
     this.app = options.app;
     this.accountPool = options.accountPool;
     this.clientKeyPool = options.clientKeyPool;
+    this.isOCGoModel = options.isOCGoModel;
 
     this.wss = new WebSocketServer({ noServer: true });
     this.wss.on("connection", (ws, req) => this.handleConnection(ws, req));
@@ -288,6 +291,17 @@ export class ResponsesWebSocketServer {
    * handler and stream the resulting SSE events back as WS text frames.
    */
   private async dispatch(ws: WebSocket, req: IncomingMessage, body: string, signal: AbortSignal): Promise<void> {
+    if (this.isOCGoModel) {
+      // Leave invalid JSON to the existing HTTP error handler.
+      let model: unknown;
+      try { model = (JSON.parse(body) as { model?: unknown } | null)?.model; } catch { /* forward for normal validation */ }
+      if (typeof model === "string" && this.isOCGoModel(model)) {
+        this.sendErrorFrame(ws, JSON.stringify({
+          error: { code: "ocgo_unsupported_endpoint", type: "invalid_request_error", message: "OCGo requires HTTP POST /v1/responses" },
+        }));
+        return;
+      }
+    }
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     for (const [key, value] of Object.entries(req.headers)) {
       if (typeof value === "string" && !STRIPPED_HEADERS.has(key)) {

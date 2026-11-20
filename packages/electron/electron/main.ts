@@ -19,6 +19,11 @@ import {
 } from "./auto-updater.js";
 import { IS_MAC } from "./constants.js";
 
+// Injected by electron/build.mjs. Fork (OCGO) builds set OCGO_BUILD=1, which
+// skips updater initialisation entirely: no upstream feed, no app-update.yml,
+// no updater cache directory. `typeof` keeps unbundled/ts-node contexts safe.
+const OCGO_BUILD = typeof __OCGO_BUILD__ !== "undefined" && __OCGO_BUILD__;
+
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -155,8 +160,9 @@ app.on("ready", async () => {
     // 5. Main window
     createWindow();
 
-    // 6. Auto-updater (only in packaged mode)
-    if (app.isPackaged) {
+    // 6. Auto-updater (only in packaged mode; never in unofficial OCGO builds,
+    //    which have no GitHub feed and must not fall back to the upstream repo)
+    if (app.isPackaged && !OCGO_BUILD) {
       if (!IS_MAC) setDesktopUpdater({ getState: getAutoUpdateState, check: checkForUpdateManual, install: () => { isQuitting = true; installUpdate(); } });
       let autoUpdate = true;
       let autoDownload = false;
@@ -316,7 +322,12 @@ function buildTrayMenu(): Electron.MenuItemConstructorOptions[] {
 
   // Auto-update menu items
   const updateState = getAutoUpdateState();
-  if (updateState.downloaded) {
+  if (OCGO_BUILD) {
+    items.push({
+      label: "OCGo Releases (manual updates)",
+      click: () => { void shell.openExternal("https://github.com/LeonhardtHUST/codex-ocgo-proxy/releases"); },
+    });
+  } else if (updateState.downloaded) {
     items.push({
       label: `Install Update (v${updateState.version})`,
       click: () => installUpdate(),

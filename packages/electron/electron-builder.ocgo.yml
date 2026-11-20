@@ -1,0 +1,77 @@
+# Fork-only packaging config for unofficial OCGO builds.
+#
+# Kept separate from electron-builder.yml on purpose: the inherited upstream
+# release workflow keeps using the upstream config (and its GitHub publish
+# metadata) untouched. This config explicitly disables publish discovery with
+# `publish: null`, so electron-builder generates no app-update.yml and the
+# packaged app has no update feed at all — even if the updater were ever
+# initialised it would fail closed instead of falling back to the upstream
+# repository.
+#
+# Identity isolation from upstream installs:
+#   appId / productName / executableName / extraMetadata.name are all distinct,
+#   so the installer entry, shortcuts, user-data directory and electron-updater
+#   cache directory (never created: updater is compiled out) cannot collide
+#   with a regular Codex Proxy installation.
+
+appId: com.ocgo.codexproxy.unofficial
+productName: Codex Proxy OCGo (unofficial)
+electronVersion: "35.7.5"
+executableName: codex-proxy-ocgo-unofficial
+publish: null
+
+artifactName: "Codex-Proxy-OCGo-unofficial-${version}-${os}-${arch}.${ext}"
+
+directories:
+  output: release-ocgo
+
+files:
+  - dist-electron/**/*
+  - config/**/*
+  - public/**/*
+  - electron/assets/**/*
+  - package.json
+  - "!node_modules"
+  - "!dist"
+
+asarUnpack:
+  - "config/**/*"
+  - "public/**/*"
+  - "**/*.node"
+
+extraResources:
+  - from: bin/
+    to: bin/
+    filter:
+      - "**/*"
+  - from: native/
+    to: native/
+    filter:
+      - "**/*"
+  # Copied into packages/electron/ by the OCGO workflow before packaging; this
+  # ships the non-commercial licence inside every artifact as well as in the
+  # GitHub Release assets.
+  - from: LICENCE
+    to: LICENCE
+
+extraMetadata:
+  name: codex-proxy-ocgo-unofficial
+  productName: Codex Proxy OCGo (unofficial)
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: electron/assets/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+  icon: electron/assets/icon.png
+  category: Development

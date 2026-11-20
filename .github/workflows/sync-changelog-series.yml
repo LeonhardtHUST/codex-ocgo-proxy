@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   sync:
+    if: github.repository == 'icebear0828/codex-proxy'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

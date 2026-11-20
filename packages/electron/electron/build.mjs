@@ -11,6 +11,14 @@
 
 import { build } from "esbuild";
 
+// Fork builds (OCGO_BUILD=1) compile the updater out of both bundles. The
+// constant is injected into the main bundle (desktop updater gate) and the
+// server bundle (proxy self-update gate) under the same name so source code
+// can test `typeof __OCGO_BUILD__ !== "undefined" && __OCGO_BUILD__`.
+const ocgoBuild = process.env.OCGO_BUILD === "1";
+const define = { __OCGO_BUILD__: JSON.stringify(ocgoBuild) };
+console.log(`[esbuild] __OCGO_BUILD__=${ocgoBuild}`);
+
 // 1. Electron main process → CJS (loaded by Electron directly)
 await build({
   entryPoints: ["electron/main.ts"],
@@ -21,6 +29,7 @@ await build({
   external: ["electron"],
   target: "node20",
   sourcemap: true,
+  define,
 });
 
 console.log("[esbuild] dist-electron/main.cjs built successfully");
@@ -44,6 +53,7 @@ await build({
   external: [],
   target: "node20",
   sourcemap: true,
+  define,
   // Mark .node files as external (native addons)
   banner: {
     js: `import { createRequire as __cpCreateRequire } from "module";\nimport { fileURLToPath as __cpFileURLToPath } from "url";\nimport { dirname as __cpDirname } from "path";\nconst require = __cpCreateRequire(import.meta.url);\nconst __filename = __cpFileURLToPath(import.meta.url);\nconst __dirname = __cpDirname(__filename);`,

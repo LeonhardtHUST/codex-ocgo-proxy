@@ -61,6 +61,24 @@ describe("self-update", () => {
     _execFileAsync.mockResolvedValue({ stdout: "", stderr: "" });
   });
 
+  it("does not query upstream or apply updates in the unofficial OCGo desktop build", async () => {
+    vi.stubGlobal("__OCGO_BUILD__", true);
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    try {
+      _isEmbedded.mockReturnValue(true);
+      const { canSelfUpdate, checkProxySelfUpdate, checkDockerRegistryVersion, applyProxySelfUpdate } = await importFresh();
+      expect(canSelfUpdate()).toBe(false);
+      expect(await checkProxySelfUpdate()).toMatchObject({ mode: "electron", updateAvailable: false, release: null });
+      expect(await checkDockerRegistryVersion()).toBeNull();
+      expect(await applyProxySelfUpdate()).toMatchObject({ started: false });
+      expect(fetch).not.toHaveBeenCalled();
+      expect(_execFileAsync).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   // ── getDeployMode ─────────────────────────────────────────────────
 
   describe("getDeployMode", () => {

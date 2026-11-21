@@ -14,16 +14,16 @@
 #   cache directory (never created: updater is compiled out) cannot collide
 #   with a regular Codex Proxy installation.
 
-appId: com.ocgo.codexproxy.unofficial
-productName: Codex Proxy OCGo (unofficial)
+appId: com.opencodex.router.unofficial
+productName: OpenCodeX-Router (unofficial)
 electronVersion: "35.7.5"
-executableName: codex-proxy-ocgo-unofficial
+executableName: opencodex-router-unofficial
 publish: null
 
-artifactName: "Codex-Proxy-OCGo-unofficial-${version}-${os}-${arch}.${ext}"
+artifactName: "OpenCodeX-Router-unofficial-${version}-${os}-${arch}.${ext}"
 
 directories:
-  output: release-ocgo
+  output: release-ocx
 
 files:
   - dist-electron/**/*
@@ -55,8 +55,8 @@ extraResources:
     to: LICENCE
 
 extraMetadata:
-  name: codex-proxy-ocgo-unofficial
-  productName: Codex Proxy OCGo (unofficial)
+  name: opencodex-router-unofficial
+  productName: OpenCodeX-Router (unofficial)
 
 win:
   target:

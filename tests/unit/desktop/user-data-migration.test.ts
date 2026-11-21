@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   LEGACY_USER_DATA_SCOPES,
   PRIMARY_USER_DATA_SCOPE,
+  UNOFFICIAL_LEGACY_USER_DATA_SCOPES,
   resolveUserDataDir,
   userDataBaseDir,
 } from "../../../scripts/portable/user-data.mjs";
@@ -76,5 +77,35 @@ describe("user data migration", () => {
     const result = resolveUserDataDir({ baseDir: BASE, ...fs });
     expect(result).toMatchObject({ dir: PRIMARY, migrated: true });
     expect(result.legacyDir).toBe(`${BASE}\\codex-proxy`);
+  });
+});
+
+describe("unofficial build identity", () => {
+  it("honours an explicit primary scope instead of the default", () => {
+    const fs = fakeFs([`${BASE}\\opencodex-router-unofficial\\data`]);
+    const result = resolveUserDataDir({
+      baseDir: BASE,
+      primaryScope: ["opencodex-router-unofficial"],
+      legacyScopes: UNOFFICIAL_LEGACY_USER_DATA_SCOPES,
+      ...fs,
+    });
+    expect(result).toMatchObject({ dir: `${BASE}\\opencodex-router-unofficial`, migrated: false });
+  });
+
+  it("migrates the previous unofficial identity without touching the regular build", () => {
+    const fs = fakeFs([`${BASE}\\codex-proxy-ocgo-unofficial\\data`]);
+    const result = resolveUserDataDir({
+      baseDir: BASE,
+      primaryScope: ["opencodex-router-unofficial"],
+      legacyScopes: UNOFFICIAL_LEGACY_USER_DATA_SCOPES,
+      ...fs,
+    });
+    expect(result).toMatchObject({ migrated: true, legacyDir: `${BASE}\\codex-proxy-ocgo-unofficial` });
+    expect(fs.copySync).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the two identities' legacy lists disjoint", () => {
+    const flat = (scopes) => scopes.map((scope) => scope.join("/"));
+    expect(flat(UNOFFICIAL_LEGACY_USER_DATA_SCOPES).some((entry) => flat(LEGACY_USER_DATA_SCOPES).includes(entry))).toBe(false);
   });
 });

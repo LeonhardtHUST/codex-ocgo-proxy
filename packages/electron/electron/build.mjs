@@ -11,13 +11,13 @@
 
 import { build } from "esbuild";
 
-// Fork builds (OCGO_BUILD=1) compile the updater out of both bundles. The
+// Fork builds (OCX_BUILD=1) compile the updater out of both bundles. The
 // constant is injected into the main bundle (desktop updater gate) and the
 // server bundle (proxy self-update gate) under the same name so source code
-// can test `typeof __OCGO_BUILD__ !== "undefined" && __OCGO_BUILD__`.
-const ocgoBuild = process.env.OCGO_BUILD === "1";
-const define = { __OCGO_BUILD__: JSON.stringify(ocgoBuild) };
-console.log(`[esbuild] __OCGO_BUILD__=${ocgoBuild}`);
+// can test `typeof __OCX_BUILD__ !== "undefined" && __OCX_BUILD__`.
+const ocgoBuild = process.env.OCX_BUILD === "1";
+const define = { __OCX_BUILD__: JSON.stringify(ocgoBuild) };
+console.log(`[esbuild] __OCX_BUILD__=${ocgoBuild}`);
 
 // 1. Electron main process → CJS (loaded by Electron directly)
 await build({

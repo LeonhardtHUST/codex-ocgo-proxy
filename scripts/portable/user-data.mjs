@@ -20,6 +20,15 @@ export const LEGACY_USER_DATA_SCOPES = [
   ["codex-proxy"],
 ];
 
+/**
+ * Legacy scopes of the unofficial (no-updater) build. It is a separate identity on purpose,
+ * so its history must never be merged into the regular build's directory.
+ */
+export const UNOFFICIAL_LEGACY_USER_DATA_SCOPES = [
+  ["codex-proxy-ocgo-unofficial"],
+  ["Codex Proxy OCGo (unofficial)"],
+];
+
 /** Per-user base directory for the current platform. */
 export function userDataBaseDir({ platform, env = {}, home = "" }) {
   if (platform === "win32") return env.APPDATA?.trim() || `${home}\\AppData\\Roaming`;

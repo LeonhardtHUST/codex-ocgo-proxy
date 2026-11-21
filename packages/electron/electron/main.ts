@@ -6,11 +6,16 @@
  */
 
 import { app, BrowserWindow, Tray, Menu, shell, nativeImage, dialog } from "electron";
-import { resolve, join } from "path";
+import { resolve, join, relative } from "path";
 import { pathToFileURL } from "url";
 import { existsSync, mkdirSync, cpSync } from "fs";
 import { homedir } from "os";
-import { resolveUserDataDir, userDataBaseDir } from "../../../scripts/portable/user-data.mjs";
+import {
+  LEGACY_USER_DATA_SCOPES,
+  UNOFFICIAL_LEGACY_USER_DATA_SCOPES,
+  resolveUserDataDir,
+  userDataBaseDir,
+} from "../../../scripts/portable/user-data.mjs";
 import {
   initAutoUpdater,
   getAutoUpdateState,
@@ -21,10 +26,10 @@ import {
 } from "./auto-updater.js";
 import { IS_MAC } from "./constants.js";
 
-// Injected by electron/build.mjs. Fork (OCGO) builds set OCGO_BUILD=1, which
+// Injected by electron/build.mjs. Fork (OCGO) builds set OCX_BUILD=1, which
 // skips updater initialisation entirely: no upstream feed, no app-update.yml,
 // no updater cache directory. `typeof` keeps unbundled/ts-node contexts safe.
-const OCGO_BUILD = typeof __OCGO_BUILD__ !== "undefined" && __OCGO_BUILD__;
+const OCX_BUILD = typeof __OCX_BUILD__ !== "undefined" && __OCX_BUILD__;
 
 
 let mainWindow: BrowserWindow | null = null;
@@ -121,8 +126,15 @@ app.on("ready", async () => {
     // 1. Determine paths — must happen before importing backend
     // Renaming the packaged app moves the per-user directory; migrate once so existing
     // accounts/keys/logs are not orphaned. The legacy directory is copied, never deleted.
+    // The target scope comes from Electron itself, so the regular and the unofficial build
+    // keep their separate data directories instead of collapsing into one.
+    const defaultUserData = app.getPath("userData");
+    const userDataBase = userDataBaseDir({ platform: process.platform, env: process.env, home: homedir() });
+    const primaryScope = relative(userDataBase, defaultUserData).split(/[\\/]+/).filter(Boolean);
     const resolvedUserData = resolveUserDataDir({
-      baseDir: userDataBaseDir({ platform: process.platform, env: process.env, home: homedir() }),
+      baseDir: userDataBase,
+      ...(primaryScope.length > 0 ? { primaryScope } : {}),
+      legacyScopes: OCX_BUILD ? UNOFFICIAL_LEGACY_USER_DATA_SCOPES : LEGACY_USER_DATA_SCOPES,
       existsSync,
       copySync: cpSync,
     });
@@ -176,7 +188,7 @@ app.on("ready", async () => {
 
     // 6. Auto-updater (only in packaged mode; never in unofficial OCGO builds,
     //    which have no GitHub feed and must not fall back to the upstream repo)
-    if (app.isPackaged && !OCGO_BUILD) {
+    if (app.isPackaged && !OCX_BUILD) {
       if (!IS_MAC) setDesktopUpdater({ getState: getAutoUpdateState, check: checkForUpdateManual, install: () => { isQuitting = true; installUpdate(); } });
       let autoUpdate = true;
       let autoDownload = false;
@@ -336,7 +348,7 @@ function buildTrayMenu(): Electron.MenuItemConstructorOptions[] {
 
   // Auto-update menu items
   const updateState = getAutoUpdateState();
-  if (OCGO_BUILD) {
+  if (OCX_BUILD) {
     items.push({
       label: "OCGo Releases (manual updates)",
       click: () => { void shell.openExternal("https://github.com/LeonhardtHUST/codex-ocgo-proxy/releases"); },

@@ -26,9 +26,18 @@
   免登录弹窗提权；需要管理员时返回 409 + `elevationRequired`，通过 `POST /admin/autostart/elevate`
   走一次 UAC 完成（详见 `docs/AUTOSTART.md`）。
 - `CREDITS.md` 与 `THIRD-PARTY-NOTICES.txt`。
+- **provider 清单与 fallback 行**：`GET /admin/opencode/status` 现在返回完整 provider 清单（含 `codex-official` 与
+  `codex-fallback` 的 id、类型、启用状态与优先级）；配置了 fallback 上游后，`/v1/models` 会额外列出
+  `codex-fallback:<model>` 行，使「后备供应商」和官方供应商一样可在模型列表里被发现。
 
 ### Changed
 
+- **发布通道改名**：非官方构建通道由 `ocgo` 改为 `ocx`——tag 前缀 `ocgo-v*` → `ocx-v*`，
+  工作流 `ocgo-release.yml` → `ocx-release.yml`，打包配置 `electron-builder.ocgo.yml` → `electron-builder.ocx.yml`，
+  `appId` 改为 `com.opencodex.router.unofficial`、产品名 `OpenCodeX-Router (unofficial)`、
+  可执行名 `opencodex-router-unofficial`，构建标志 `OCGO_BUILD` → `OCX_BUILD`。
+  历史 release 仍保留在 `ocgo-v*` 标签下；如需发布新版本，改用 `ocx-v<semver>-beta.<n>`。
+- **非官方构建的数据目录隔离**：常规版与非官方版各自迁移自己的历史目录，不会互相合并数据。
 - 项目更名为 **OpenCodeX-Router**：根/npm/electron 包名、`GITHUB_REPO`、workflow 的 `github.repository`
   守卫、`publish.owner/repo`、`artifactName`、electron `appId` / `productName` 一并调整；
   此前 fork 上多个 CI 因守卫指向上游而静默跳过。

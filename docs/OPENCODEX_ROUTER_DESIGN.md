@@ -35,7 +35,7 @@
 | npm 包 | `codex-proxy` | `opencodex-router`（未被占用，2026-11-21 校验 404） | `packages/npm`、`packages/electron` |
 | 模型命名空间 | `ocgo:<id>` | `opencode:<id>` | 保留 `ocgo:`→`opencode:` 兼容别名，`opencode.legacy_ocgo_prefix`（默认 `true`）控制 |
 | 逻辑上游命名 | 无 | `opencode-go` / `opencode-zen` / `opencode-zen-free` | 目录与 `/models` 的 `owned_by` |
-| 发布 tag | `ocgo-v*` | `ocr-v*` | `.github/workflows/ocgo-release.yml`（改名见 WBS） |
+| 发布 tag | `ocgo-v*` | `ocx-v*` | `.github/workflows/ocgo-release.yml`（改名见 WBS） |
 | 配置段 | `ocgo:` | `opencode:` | 保留 `ocgo:` 段读入并映射，写入只写 `opencode:` |
 
 已知同名冲突（需在 README 声明，不影响内部落地）：
@@ -43,7 +43,7 @@
 npm `@bitkyc08/opencodex`（另一产品的 scoped 包）。我们不占用上述二者。
 
 **命名不改的部分**（改名无收益、只增回归面）：`src/**/ocgo-*.ts` 内部文件名、`data/ocgo-keys.json` 存储名、
-`OCGO_BUILD` / `__OCGO_BUILD__` 构建标志、i18n key 名 `ocgoKeys`（只改文案）。
+`OCX_BUILD` / `__OCX_BUILD__` 构建标志（已改名）、i18n key 名 `ocgoKeys`（只改文案）。
 
 ---
 

@@ -62,7 +62,7 @@ describe("self-update", () => {
   });
 
   it("does not query upstream or apply updates in the unofficial OCGo desktop build", async () => {
-    vi.stubGlobal("__OCGO_BUILD__", true);
+    vi.stubGlobal("__OCX_BUILD__", true);
     const fetch = vi.fn();
     vi.stubGlobal("fetch", fetch);
     try {

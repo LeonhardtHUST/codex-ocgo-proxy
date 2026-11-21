@@ -2,15 +2,15 @@ name: OCGO Release (unofficial fork build)
 
 # Fork-only, unofficial release lane for LeonhardtHUST/codex-ocgo-proxy.
 # It never touches the inherited upstream workflows: it is triggered by its own
-# `ocgo-v*` tag namespace (the inherited `v*` filters never match it), runs in
+# `ocx-v*` tag namespace (the inherited `v*` filters never match it), runs in
 # this repository only, and writes nothing except a release inside this repo.
 #
 # Channel rules:
-#   - release source: an explicit annotated tag `ocgo-v<semver>-beta.<n>` whose
+#   - release source: an explicit annotated tag `ocx-v<semver>-beta.<n>` whose
 #     commit is reachable from origin/dev (verified in the validate job);
 #   - artifacts: Windows x64 NSIS installer + Linux x64 AppImage, both built
 #     from the tagged commit, labelled "unofficial", signed by nobody;
-#   - the Electron updater is compiled out (OCGO_BUILD=1) and the packaging
+#   - the Electron updater is compiled out (OCX_BUILD=1) and the packaging
 #     config carries no GitHub `publish` block, so a build has no update feed;
 #   - the GitHub Release is created as a draft only after every build and smoke
 #     test passed, assets and checksums are verified, then it is published as a
@@ -23,10 +23,10 @@ name: OCGO Release (unofficial fork build)
 on:
   push:
     tags:
-      - "ocgo-v*"
+      - "ocx-v*"
   pull_request:
     paths:
-      - ".github/workflows/ocgo-release.yml"
+      - ".github/workflows/ocx-release.yml"
       - ".github/scripts/**"
       - "packages/electron/**"
       - "native/**"
@@ -75,18 +75,18 @@ jobs:
           TAG=""
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
             case "${GITHUB_REF:-}" in
-              refs/tags/ocgo-v*) ;;
+              refs/tags/ocx-v*) ;;
               *)
-                echo "::error::unexpected push ref ${GITHUB_REF:-}; only ocgo-v* tags may release"
+                echo "::error::unexpected push ref ${GITHUB_REF:-}; only ocx-v* tags may release"
                 exit 1
                 ;;
             esac
             TAG="$GITHUB_REF_NAME"
-            if ! printf '%s' "$TAG" | grep -Eq '^ocgo-v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$'; then
-              echo "::error::tag '$TAG' must match ocgo-v<semver>-beta.<n> (e.g. ocgo-v2.1.26-beta.1)"
+            if ! printf '%s' "$TAG" | grep -Eq '^ocx-v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$'; then
+              echo "::error::tag '$TAG' must match ocx-v<semver>-beta.<n> (e.g. ocx-v2.1.26-beta.1)"
               exit 1
             fi
-            VERSION="${TAG#ocgo-v}"
+            VERSION="${TAG#ocx-v}"
             for f in LICENCE OCGO_LOCAL.md config/ocgo.local.example.yaml config/ocgo2api.example.toml; do
               test -f "$f" || { echo "::error::missing $f in the tagged commit"; exit 1; }
             done
@@ -202,9 +202,9 @@ jobs:
     timeout-minutes: 45
     if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     env:
-      OCGO_BUILD: "1"
+      OCX_BUILD: "1"
       FULL_VERSION: ${{ needs.validate.outputs.version }}
-      RELEASE_DIR: packages/electron/release-ocgo
+      RELEASE_DIR: packages/electron/release-ocx
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -265,7 +265,7 @@ jobs:
       - name: Package Windows installer
         working-directory: packages/electron
         shell: bash
-        run: npx electron-builder --config electron-builder.ocgo.yml --win --x64 --publish never
+        run: npx electron-builder --config electron-builder.ocx.yml --win --x64 --publish never
 
       - name: Assert no upstream update feed and licence embedded
         shell: bash
@@ -277,7 +277,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $cfg = Join-Path $env:GITHUB_WORKSPACE "packages/electron/release-ocgo/win-unpacked/resources/app.asar.unpacked/config"
+          $cfg = Join-Path $env:GITHUB_WORKSPACE "packages/electron/release-ocx/win-unpacked/resources/app.asar.unpacked/config"
           node packages/electron/electron/apply-ocgo-smoke-config.mjs "$cfg"
 
       - name: Prepare isolated smoke home
@@ -323,9 +323,9 @@ jobs:
     timeout-minutes: 45
     if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     env:
-      OCGO_BUILD: "1"
+      OCX_BUILD: "1"
       FULL_VERSION: ${{ needs.validate.outputs.version }}
-      RELEASE_DIR: packages/electron/release-ocgo
+      RELEASE_DIR: packages/electron/release-ocx
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -390,7 +390,7 @@ jobs:
 
       - name: Package Linux AppImage
         working-directory: packages/electron
-        run: npx electron-builder --config electron-builder.ocgo.yml --linux --x64 --publish never
+        run: npx electron-builder --config electron-builder.ocx.yml --linux --x64 --publish never
 
       - name: Assert no upstream update feed and licence embedded
         run: |
@@ -447,7 +447,7 @@ jobs:
     needs: [validate, build-windows, build-linux]
     if: >-
       github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/tags/ocgo-v') &&
+      startsWith(github.ref, 'refs/tags/ocx-v') &&
       github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -483,17 +483,17 @@ jobs:
       - name: Bundle docs, licence and sample configs
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/ocgo-docs"
-          cp LICENCE OCGO_LOCAL.md config/ocgo.local.example.yaml config/ocgo2api.example.toml "$RUNNER_TEMP/ocgo-docs/"
-          (cd "$RUNNER_TEMP/ocgo-docs" && zip -q -r "$GITHUB_WORKSPACE/dist/ocgo-docs.zip" .)
-          unzip -l dist/ocgo-docs.zip
+          mkdir -p "$RUNNER_TEMP/ocx-docs"
+          cp LICENCE OCGO_LOCAL.md config/ocgo.local.example.yaml config/ocgo2api.example.toml "$RUNNER_TEMP/ocx-docs/"
+          (cd "$RUNNER_TEMP/ocx-docs" && zip -q -r "$GITHUB_WORKSPACE/dist/ocx-docs.zip" .)
+          unzip -l dist/ocx-docs.zip
           cp LICENCE dist/LICENCE
 
       - name: Write and verify checksums
         run: |
           set -euo pipefail
           cd dist
-          sha256sum ./*.exe ./*.AppImage LICENCE ocgo-docs.zip > SHA256SUMS.txt
+          sha256sum ./*.exe ./*.AppImage LICENCE ocx-docs.zip > SHA256SUMS.txt
           cat SHA256SUMS.txt
           sha256sum -c SHA256SUMS.txt
 
@@ -509,7 +509,7 @@ jobs:
           - Version: \`$VERSION\`
           - Source commit: \`$SHORT_SHA\` (verified reachable from \`dev\`)
           - License: Codex Proxy Non-Commercial Licence 1.0 (embedded in the app payload and attached below)
-          - Docs bundle: \`ocgo-docs.zip\` (licence, \`OCGO_LOCAL.md\`, \`ocgo.local.example.yaml\`, \`ocgo2api.example.toml\`)
+          - Docs bundle: \`ocx-docs.zip\` (licence, \`OCGO_LOCAL.md\`, \`ocgo.local.example.yaml\`, \`ocgo2api.example.toml\`)
 
           ## Install
 
@@ -551,7 +551,7 @@ jobs:
             --verify-tag \
             --draft \
             --prerelease \
-            --title "Codex Proxy OCGo (unofficial) $VERSION" \
+            --title "OpenCodeX-Router (unofficial) $VERSION" \
             --notes-file "$RUNNER_TEMP/release-notes.md"
 
       - name: Upload assets (never clobber)
@@ -559,13 +559,13 @@ jobs:
           set -euo pipefail
           gh release upload "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
-            dist/*.exe dist/*.AppImage dist/LICENCE dist/ocgo-docs.zip dist/SHA256SUMS.txt
+            dist/*.exe dist/*.AppImage dist/LICENCE dist/ocx-docs.zip dist/SHA256SUMS.txt
 
       - name: Verify every asset before publishing
         run: |
           set -euo pipefail
           cd dist
-          ls -1 ./*.exe ./*.AppImage LICENCE ocgo-docs.zip SHA256SUMS.txt | sed 's|^\./||' | sort > "$RUNNER_TEMP/expected-assets.txt"
+          ls -1 ./*.exe ./*.AppImage LICENCE ocx-docs.zip SHA256SUMS.txt | sed 's|^\./||' | sort > "$RUNNER_TEMP/expected-assets.txt"
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' \
             | sort > "$RUNNER_TEMP/actual-assets.txt"
           diff -u "$RUNNER_TEMP/expected-assets.txt" "$RUNNER_TEMP/actual-assets.txt"

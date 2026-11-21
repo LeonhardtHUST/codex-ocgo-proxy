@@ -78,8 +78,8 @@ function hardRestart(cwd: string): void {
 const execFileAsync = promisify(execFile);
 
 // The unofficial OCGo desktop build has no auto-update channel.
-declare const __OCGO_BUILD__: boolean;
-const IS_OCGO_BUILD = typeof __OCGO_BUILD__ !== "undefined" && __OCGO_BUILD__;
+declare const __OCX_BUILD__: boolean;
+const IS_OCX_BUILD = typeof __OCX_BUILD__ !== "undefined" && __OCX_BUILD__;
 const GITHUB_REPO = "icebear0828/codex-proxy";
 const GHCR_IMAGE = "icebear0828/codex-proxy";
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
@@ -186,7 +186,7 @@ export function getProxyInfo(): ProxyInfo {
 
 /** Whether this environment supports git-based self-update. */
 export function canSelfUpdate(): boolean {
-  if (IS_OCGO_BUILD || isEmbedded() || isLite() || isNpmDistribution()) return false;
+  if (IS_OCX_BUILD || isEmbedded() || isLite() || isNpmDistribution()) return false;
   if (_gitAvailable !== null) return _gitAvailable;
 
   if (!existsSync(resolve(process.cwd(), ".git"))) {
@@ -280,7 +280,7 @@ async function getRemoteChangelog(cwd: string): Promise<string | null> {
  * Returns null on any failure (network, auth, no version tags).
  */
 export async function checkDockerRegistryVersion(): Promise<string | null> {
-  if (IS_OCGO_BUILD) return null;
+  if (IS_OCX_BUILD) return null;
   try {
     // Step 1: obtain anonymous pull token
     const tokenResp = await fetch(
@@ -400,7 +400,7 @@ async function checkGitHubRelease(): Promise<GitHubReleaseInfo | null> {
 /** Fetch latest from origin and check how many commits behind. */
 export async function checkProxySelfUpdate(): Promise<ProxySelfUpdateResult> {
   const mode = getDeployMode();
-  if (IS_OCGO_BUILD) {
+  if (IS_OCX_BUILD) {
     return _cachedResult = {
       commitsBehind: 0, currentCommit: null, latestCommit: null,
       commits: [], changelog: null, release: null, updateAvailable: false, mode,
@@ -514,7 +514,7 @@ export type UpdateProgressCallback = (step: string, status: "running" | "done" |
 export async function applyProxySelfUpdate(
   onProgress?: UpdateProgressCallback,
 ): Promise<{ started: boolean; restarting?: boolean; error?: string }> {
-  if (IS_OCGO_BUILD) return { started: false, error: "Install OCGo updates manually from the fork's Releases page." };
+  if (IS_OCX_BUILD) return { started: false, error: "Install OCGo updates manually from the fork's Releases page." };
   if (_proxyUpdateInProgress) {
     return { started: false, error: "Update already in progress" };
   }
@@ -608,7 +608,7 @@ async function runCheck(): Promise<void> {
 
 /** Start periodic proxy update checking (initial check after 10s, then every 6h). */
 export function startProxyUpdateChecker(): void {
-  if (IS_OCGO_BUILD) return;
+  if (IS_OCX_BUILD) return;
   _initialTimer = setTimeout(() => {
     void runCheck();
   }, INITIAL_DELAY_MS);

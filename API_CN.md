@@ -1,6 +1,6 @@
-# Codex Proxy API 文档
+# OpenCodeX-Router API 文档
 
-[English](./API.md) | **简体中文** | [繁體中文 (台灣)](./API_TW.md) | [繁體中文 (香港)](./API_HK.md) | [日本語](./API_JA.md)
+[English](./API.md) | **中文**
 
 ---
 

@@ -1,0 +1,31 @@
+THIRD-PARTY NOTICES — OpenCodeX-Router
+
+本文件列出本仓直接依赖的第三方包及其许可证标识。完整许可文本见各包自身随附的 LICENSE 文件
+(node_modules/<pkg>/LICENSE)，并未在本仓内重制。
+
+This file lists direct third-party dependencies and their licence identifiers.
+Full licence texts ship with each package under node_modules/<pkg>/LICENSE and are not
+reproduced here.
+
+Package | Declared range | Installed | Licence | Scope
+--- | --- | --- | --- | ---
+@electron/asar | ^3.2.0 | 3.4.1 | MIT | runtime
+@hono/node-server | ^1.0.0 | 1.19.14 | MIT | runtime
+@types/better-sqlite3 | ^7.6.13 | 7.6.13 | MIT | development
+@types/js-yaml | ^4.0.0 | 4.0.9 | MIT | development
+@types/node | ^22.0.0 | 22.19.11 | MIT | development
+@types/ws | ^8.18.1 | 8.18.1 | MIT | development
+@vitest/coverage-v8 | ^3.2.4 | 3.2.4 | MIT | development
+better-sqlite3 | ^12.10.0 | 12.10.0 | MIT | runtime
+electron-to-chromium | ^1.5.302 | 1.5.302 | ISC | development
+hono | ^4.0.0 | 4.12.18 | MIT | runtime
+https-proxy-agent | ^8.0.0 | 8.0.0 | MIT | runtime
+js-beautify | ^1.15.0 | 1.15.4 | MIT | development
+js-yaml | ^4.1.0 | 4.1.1 | MIT | runtime
+preact | ^10.29.1 | 10.29.1 | MIT | development
+tsx | ^4.0.0 | 4.21.0 | MIT | development
+typescript | ^5.5.0 | 5.9.3 | Apache-2.0 | development
+undici | ^7.0.0 | 7.25.0 | MIT | runtime
+vitest | ^3.2.4 | 3.2.4 | MIT | development
+ws | ^8.19.0 | 8.19.0 | MIT | runtime
+zod | ^3.23.0 | 3.25.76 | MIT | runtime

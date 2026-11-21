@@ -1,8 +1,8 @@
 <div align="center">
 
-  <h1>Codex Proxy</h1>
-  <h3>Your Local Codex Coding Assistant Gateway</h3>
-  <p>Expose Codex Desktop's capabilities as standard OpenAI / Anthropic / Gemini APIs, seamlessly connecting any AI client.</p>
+  <h1>OpenCodeX-Router</h1>
+  <h3>Local AI Coding Gateway</h3>
+  <p>Expose both Codex Desktop and OpenCode (Go / Zen / Zen Free) through standard OpenAI / Anthropic / Gemini protocols, seamlessly connecting any AI client; opencode and codex are co-equal first-class providers.</p>
 
   <p>
     <img src="https://img.shields.io/badge/Runtime-Node.js_18+-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js">
@@ -24,34 +24,25 @@
   </p>
 
   <p>
-    <a href="./README.md">简体中文</a> |
-    <a href="./README_TW.md">繁體中文 (台灣)</a> |
-    <a href="./README_HK.md">繁體中文 (香港)</a> |
-    <strong>English</strong> |
-    <a href="./README_JA.md">日本語</a>
+    <a href="./README.md">中文</a> |
+    <strong>English</strong>
   </p>
 
   <br>
 
-  <a href="https://x.com/IceBearMiner"><img src="https://img.shields.io/badge/Follow-@IceBearMiner-000?style=flat-square&logo=x&logoColor=white" alt="X"></a>
-  <a href="https://github.com/icebear0828/codex-proxy/issues"><img src="https://img.shields.io/github/issues/icebear0828/codex-proxy?style=flat-square" alt="Issues"></a>
-  <a href="#-donate"><img src="https://img.shields.io/badge/Donate-WeChat-07C160?style=flat-square&logo=wechat&logoColor=white" alt="Donate"></a>
+  <a href="https://github.com/LeonhardtHUST/codex-ocgo-proxy/issues"><img src="https://img.shields.io/github/issues/LeonhardtHUST/codex-ocgo-proxy?style=flat-square" alt="Issues"></a>
 
 </div>
 
 ---
 
-> **Disclaimer**: This project is independently developed and maintained by a single person — built to scratch my own itch. I have my own account pipeline and am not short on tokens; this project exists because I needed it, not to freeload off anyone.
->
-> I open-source and maintain this voluntarily. Features get added when I need them; bugs get fixed as soon as I find them. But I am under no obligation to serve any individual user's demands.
->
-> Think the code is garbage? Don't use it. Think you can do better? Open a PR and join as a contributor. The issue tracker is for bug reports and suggestions — not feature demands, update nagging, or unsolicited code reviews.
+**OpenCodeX-Router** is a local AI coding gateway that exposes both [Codex Desktop](https://openai.com/codex) and OpenCode (Go / Zen / Zen Free) through standard protocol endpoints — OpenAI `/v1/chat/completions`, Anthropic `/v1/messages`, Gemini, Codex `/v1/responses` passthrough, and an optional Ollama-compatible `/api/chat` bridge. opencode and codex are treated as co-equal first-class providers. Use these coding models directly in Cursor, Claude Code, Continue, Pi, or any compatible client.
 
----
+Just a ChatGPT or OpenCode account (or a third-party API key provider) and this gateway — your own AI coding assistant gateway, running locally.
 
-**Codex Proxy** is a lightweight local gateway that translates the [Codex Desktop](https://openai.com/codex) Responses API into multiple standard protocol endpoints — OpenAI `/v1/chat/completions`, Anthropic `/v1/messages`, Gemini, Codex `/v1/responses` passthrough, and an optional Ollama-compatible `/api/chat` bridge. Use Codex coding models directly in Cursor, Claude Code, Continue, Pi, or any compatible client.
+## Upstream lineage and independence
 
-Just a ChatGPT account (or a third-party API key provider) and this proxy — your own personal AI coding assistant gateway, running locally.
+This repository is an independent derivative fork of [Codex Proxy](https://github.com/icebear0828/codex-proxy). It is not an official release and is not affiliated with, endorsed by, or supported by the upstream project or its maintainers. The fork evolves and releases on its own schedule and does not promise to follow upstream's timeline or version cadence. The licence is unchanged — the original non-commercial licence still applies (see [LICENCE](./LICENCE)) — and upstream authorship is credited in [CREDITS.md](./CREDITS.md).
 
 ## 🚀 Quick Start
 
@@ -971,34 +962,17 @@ curl -X POST http://localhost:8080/auth/accounts/import \
 - This project relies on Codex Desktop's public API. Upstream updates are auto-detected and fingerprints auto-synced.
 - Windows source builds need Rust toolchain for the TLS native addon. Docker deployment has it pre-built.
 
-## ☕ Donate & Community
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center">
-        <img src="./.github/assets/donate.png" width="180" alt="WeChat Donate"><br>
-        <sub>☕ Donate</sub>
-      </td>
-      <td align="center">
-        <img src="./.github/assets/tgimage.png" width="180" alt="Telegram Group"><br>
-        <sub>💬 Telegram</sub>
-      </td>
-    </tr>
-  </table>
-</div>
-
 ## 🙏 Acknowledgements
 
-Codex Proxy started as a personal project to scratch my own itch, and it has grown with far more support and warmth than I ever anticipated.
+This project's upstream, **Codex Proxy**, was created by [icebear0828](https://github.com/icebear0828); this repository continues it as an independent derivative fork.
 
-Special thanks to all contributors who submitted code, documentation, fixes, or PRs:
+Special thanks to all contributors who submitted code, documentation, fixes, or PRs (the full list and upstream attribution live in [CREDITS.md](./CREDITS.md)):
 
 [@SsuJojo](https://github.com/SsuJojo) · [@TutuchanXD](https://github.com/TutuchanXD) · [@kanweiwei](https://github.com/kanweiwei) · [@et2010](https://github.com/et2010) · [@d-demand-priv](https://github.com/d-demand-priv) · [@hangox](https://github.com/hangox) · [@jarvisluk](https://github.com/jarvisluk) · [@jeasonstudio](https://github.com/jeasonstudio) · [@JPClaw12](https://github.com/JPClaw12) · [@lezi-fun](https://github.com/lezi-fun) · [@lookvincent](https://github.com/lookvincent) · [@pocper1](https://github.com/pocper1) · [@woai66](https://github.com/woai66) · [@xsShuang](https://github.com/xsShuang) · [@yuwei5380](https://github.com/yuwei5380) · [@aeltorio](https://github.com/aeltorio) · [@williamjameshandley](https://github.com/williamjameshandley) · [@FlavienKlr](https://github.com/FlavienKlr) · [@zyycn](https://github.com/zyycn)
 
-Thanks as well to everyone who opened [Issues](https://github.com/icebear0828/codex-proxy/issues) with bug reproductions, logs, compatibility reports, and feature suggestions. Those reports directly shaped our proxy engine, account rotation, Dashboard, Ollama Bridge, and observability features.
+Thanks as well to everyone who opened issues in this repository with bug reproductions, logs, compatibility reports, and feature suggestions. Those reports directly shaped our proxy engine, account rotation, Dashboard, Ollama Bridge, and observability features.
 
-**Most of all, heartfelt thanks to every developer who silently uses, stars, and supports this project. Your continued love and support is what has kept me going and iterating to this day. I'm truly thrilled and grateful that so many people enjoy Codex Proxy!** ❤️
+Thanks to every developer who uses, stars, and supports this project. That feedback and those contributions are the main reason the project keeps iterating.
 
 ## 📄 License
 

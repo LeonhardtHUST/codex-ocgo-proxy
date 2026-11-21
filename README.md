@@ -1,8 +1,8 @@
 <div align="center">
 
-  <h1>Codex Proxy</h1>
-  <h3>您的本地 Codex 编程助手中转站</h3>
-  <p>将 Codex Desktop 的能力以 OpenAI / Anthropic / Gemini 标准协议对外暴露，无缝接入任意 AI 客户端。</p>
+  <h1>OpenCodeX-Router</h1>
+  <h3>本地 AI 编程网关</h3>
+  <p>把 Codex Desktop 与 OpenCode（Go / Zen / Zen Free）统一以 OpenAI / Anthropic / Gemini 标准协议对外暴露，无缝接入任意 AI 客户端；opencode 与 codex 同为一级 provider。</p>
 
   <p>
     <img src="https://img.shields.io/badge/Runtime-Node.js_18+-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js">
@@ -24,33 +24,13 @@
   </p>
 
   <p>
-    <strong>简体中文</strong> |
-    <a href="./README_TW.md">繁體中文 (台灣)</a> |
-    <a href="./README_HK.md">繁體中文 (香港)</a> |
-    <a href="./README_EN.md">English</a> |
-    <a href="./README_JA.md">日本語</a>
+    <strong>中文</strong> |
+    <a href="./README_EN.md">English</a>
   </p>
 
 <br />
 
-<a href="https://x.com/IceBearMiner"><img src="https://img.shields.io/badge/Follow-@IceBearMiner-000?style=flat-square&logo=x&logoColor=white" alt="X"></a>
-  <a href="https://github.com/icebear0828/codex-proxy/issues"><img src="https://img.shields.io/github/issues/icebear0828/codex-proxy?style=flat-square" alt="Issues"></a>
-  <a href="#-赞赏--交流"><img src="https://img.shields.io/badge/赞赏-微信-07C160?style=flat-square&logo=wechat&logoColor=white" alt="赞赏"></a>
-
-  <br><br>
-
-  <table>
-    <tr>
-      <td align="center">
-        <img src="./.github/assets/donate.png" width="180" alt="微信赞赏码"><br>
-        <sub>☕ 赞赏</sub>
-      </td>
-      <td align="center">
-        <img src="./.github/assets/tgimage.png" width="180" alt="Telegram 群"><br>
-        <sub>💬 Telegram</sub>
-      </td>
-    </tr>
-  </table>
+  <a href="https://github.com/LeonhardtHUST/codex-ocgo-proxy/issues"><img src="https://img.shields.io/github/issues/LeonhardtHUST/codex-ocgo-proxy?style=flat-square" alt="Issues"></a>
 
 </div>
 
@@ -59,11 +39,23 @@
 
 ---
 
-**Codex Proxy** 是一个轻量级本地中转服务，将 [Codex Desktop](https://openai.com/codex) 的 Responses API 转换为多种标准协议接口（OpenAI `/v1/chat/completions`、Anthropic `/v1/messages`、Gemini、Codex `/v1/responses` 直通，以及可选 Ollama `/api/chat` 兼容桥接）。通过本项目，您可以在 Cursor、Claude Code、Continue、Pi 等任何兼容上述协议的客户端中直接使用 Codex 编程模型。
+**OpenCodeX-Router** 是一个本地 AI 编程网关，把 [Codex Desktop](https://openai.com/codex) 与 OpenCode（Go / Zen / Zen Free）统一以 OpenAI / Anthropic / Gemini 标准协议对外暴露：OpenAI `/v1/chat/completions`、Anthropic `/v1/messages`、Gemini、Codex `/v1/responses` 直通，以及可选 Ollama `/api/chat` 兼容桥接。opencode 与 codex 同为一级 provider。通过本项目，您可以在 Cursor、Claude Code、Continue、Pi 等任何兼容上述协议的客户端中直接使用这些编程模型。
 
-只需一个 ChatGPT 账号（或接入第三方 API 中转站），配合本代理即可在本地搭建一个专属的 AI 编程助手网关。
+只需一个 ChatGPT 账号或 OpenCode 账号（或接入第三方 API 中转站），配合本网关即可在本地搭建专属的 AI 编程助手网关。
 
-OCGo 默认关闭；如需接入同机 OpenCode Go 后端，参见 [OCGo 同机部署与回滚](OCGO_LOCAL.md)。
+OCGo（同机 OpenCode Go 后端）默认关闭；如需接入，参见 [OCGo 同机部署与回滚](OCGO_LOCAL.md)。
+
+## 🧬 上游血缘与独立性
+
+本仓是 [Codex Proxy](https://github.com/icebear0828/codex-proxy) 的**独立衍生分支（fork）**，不是上游官方发布，也不代表上游项目或其维护者的立场。本仓按自身节奏演进与发布，不承诺跟随上游的时间表或版本节奏。许可协议未变，仍适用原项目的非商业许可（见 [LICENCE](./LICENCE)）；上游作者与贡献者的署名见 [CREDITS.md](./CREDITS.md)。
+
+设计与运维文档：
+
+- [架构契约](./docs/OPENCODEX_ROUTER_DESIGN.md) —— provider 模型、三逻辑上游、`/models` 契约、缓存标识、fallback 图、Rust 路由边界
+- [协议契约](./docs/OPENCODE_CONTRACT.md) —— TypeScript 与 Rust 两条路径的黄金用例与不变式（`npm run test:contract`）
+- [自启（Windows）](./docs/AUTOSTART.md) —— registry / startup / task 三模式与提权语义
+- [外壳选型评估](./docs/UI_SHELL_TAURI_EVALUATION.md) · [后端 Rust 化评估](./docs/BACKEND_RUST_EVALUATION.md)
+
 
 ## 🚀 快速开始
 
@@ -1229,25 +1221,15 @@ curl -X POST http://localhost:8080/auth/accounts/import \
 
 完整更新日志请查看 [CHANGELOG.md](./CHANGELOG.md)。
 
-## ☕ 赞赏 & 交流
-
-觉得有帮助？请作者喝杯咖啡，或加入 Telegram 交流群获取使用帮助。二维码见 [页面顶部](#)。
-
 ## 🙏 贡献致谢
 
-Codex Proxy 最初只是一个个人自用项目，一路走来收获了超乎预期的关注与支持。
-
-特别感谢所有通过代码、文档、修复或 PR 参与建设的贡献者：
+本项目的上游 **Codex Proxy** 由 [icebear0828](https://github.com/icebear0828) 创建，本仓作为独立衍生分支继续演进。感谢所有通过代码、文档、修复或 PR 参与建设的贡献者，完整名单与上游署名见 [CREDITS.md](./CREDITS.md)：
 
 [@SsuJojo](https://github.com/SsuJojo) · [@TutuchanXD](https://github.com/TutuchanXD) · [@kanweiwei](https://github.com/kanweiwei) · [@et2010](https://github.com/et2010) · [@d-demand-priv](https://github.com/d-demand-priv) · [@hangox](https://github.com/hangox) · [@jarvisluk](https://github.com/jarvisluk) · [@jeasonstudio](https://github.com/jeasonstudio) · [@JPClaw12](https://github.com/JPClaw12) · [@lezi-fun](https://github.com/lezi-fun) · [@lookvincent](https://github.com/lookvincent) · [@pocper1](https://github.com/pocper1) · [@woai66](https://github.com/woai66) · [@xsShuang](https://github.com/xsShuang) · [@yuwei5380](https://github.com/yuwei5380) · [@aeltorio](https://github.com/aeltorio) · [@williamjameshandley](https://github.com/williamjameshandley) · [@FlavienKlr](https://github.com/FlavienKlr) · [@zyycn](https://github.com/zyycn)
 
-感谢所有在 [Issues](https://github.com/icebear0828/codex-proxy/issues) 里提交 bug 复现、日志、兼容性反馈和功能建议的用户。这些反馈直接推动了账号轮换、代理兼容、Dashboard、Ollama Bridge、模型兼容和错误观测等能力的迭代。
+感谢所有在本仓 Issues 里提交 bug 复现、日志、兼容性反馈和功能建议的用户。这些反馈直接推动了账号轮换、代理兼容、Dashboard、Ollama Bridge、模型兼容和错误观测等能力的迭代。
 
-**更要由衷感谢所有默默使用、关注和支持本项目的开发者朋友们。正是你们的认可与喜爱，让我一直坚持维护和迭代到现在。很高兴有这么多人喜欢 Codex Proxy！** ❤️
-
-## ⭐ Star History
-
-[![Star History Chart](https://star-history.dera.page/svg?repos=icebear0828/codex-proxy&type=Date)](https://star-history.dera.page/#icebear0828/codex-proxy&Date)
+感谢所有默默使用、关注和支持本项目的开发者朋友，这些反馈与贡献是项目持续迭代的主要动力。
 
 ## 📄 许可协议
 

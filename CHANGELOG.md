@@ -4,11 +4,47 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
-> **置顶声明**：本项目由个人独立开发维护，自愿开源。该有的功能会加，有 bug 会第一时间修。觉得代码垃圾可以不用，觉得你写得好欢迎提 PR。我没有义务为任何人定制服务。
+> **上游血缘**：本项目是 Codex Proxy 的独立衍生分支，保留上游许可与著作权声明，详见 [CREDITS.md](./CREDITS.md)。产品名、包名、配置段与模型命名空间已按本仓命名重构，不再与上游兼容。
 
 ## [Unreleased]
 
-> 暂无已记录的变更。
+### Added
+
+- **opencode provider 家族**：`opencode-go` / `opencode-zen` / `opencode-zen-free` 三个逻辑上游与 codex 同级，
+  模型命名空间 `opencode:`（显式档位前缀 `opencode-go:` / `opencode-zen:` / `opencode-zen-free:`），
+  `ocgo:` 作为兼容别名由 `opencode.legacy_ocgo_prefix` 控制。
+- **仓内 Rust 请求路由** `native/ocx-router`：三个入站协议（responses / chat completions / anthropic messages）
+  各独立端点，Node 侧管理生命周期；二进制缺失或健康检查失败时显式降级到 TypeScript adapter，并在
+  `GET /admin/opencode/status` 标记 `degraded`。
+- **模型能力目录**：`GET /v1/opencode/catalog` 与 `/v1/models` 的 opencode 条目带上下文长度、输出上限、
+  模态、能力、思考档位、原生协议与定价；字段别名兼容 `context_length` / `max_tokens` / `limit{...}` 等读法。
+- **模型 fallback 图**：`GET/PUT /admin/opencode/fallback-graph`、`POST …/validate`，以及面板画布编辑器；
+  边带失败条件与权重，受 `maxHops` / `budgetMs` 约束，响应已提交后不再跳转。
+- **zen-free 聚合轮换**：`GET/POST /admin/opencode/zen-free`，开启后全部 opencode 凭据参与免费模型轮换，
+  按成功情况反馈权重，`FreeUsageLimitError` 走通道级熔断（与付费健康分隔离）。
+- **Windows 自启**：registry / startup / task 三模式，`task` + `run_as_admin` 用 `RL HIGHEST`
+  免登录弹窗提权；需要管理员时返回 409 + `elevationRequired`，通过 `POST /admin/autostart/elevate`
+  走一次 UAC 完成（详见 `docs/AUTOSTART.md`）。
+- `CREDITS.md` 与 `THIRD-PARTY-NOTICES.txt`。
+
+### Changed
+
+- 项目更名为 **OpenCodeX-Router**：根/npm/electron 包名、`GITHUB_REPO`、workflow 的 `github.repository`
+  守卫、`publish.owner/repo`、`artifactName`、electron `appId` / `productName` 一并调整；
+  此前 fork 上多个 CI 因守卫指向上游而静默跳过。
+- **用户数据目录迁移**：包名变更会移动 Electron 的 per-user 目录，首次启动把旧目录
+  （`@codex-proxy/electron` 等）一次性复制到新作用域，不删除原目录；复制失败则继续使用旧目录并告警。
+- 文档只保留中文与英文两份；README 重写上游声明与独立分支定位。
+
+### Removed
+
+- 上游作者的个人推广内容（社交徽章、微信赞赏/Telegram 二维码、Star 历史图表、第一人称叙事）与多语言 README/API 文档。
+
+### Fixed
+
+- Rust 路由路径此前自写了一份 SSE 解析并与 TypeScript 实现并列；现复用同一批解析器，错误也统一为
+  `CodexApiError`，使既有重试与策略分类对 Rust 路径重新生效。协议契约由 `npm run test:contract` 锁定。
+
 
 ## [v2.1.x](https://github.com/icebear0828/codex-proxy/releases?q=2.1) - 2026-09-01 至今
 

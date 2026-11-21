@@ -26,6 +26,11 @@
   免登录弹窗提权；需要管理员时返回 409 + `elevationRequired`，通过 `POST /admin/autostart/elevate`
   走一次 UAC 完成（详见 `docs/AUTOSTART.md`）。
 - `CREDITS.md` 与 `THIRD-PARTY-NOTICES.txt`。
+- **上游身份 header 完整注入**：`x-opencode-session` 之外补上 `x-opencode-client` 与 `x-opencode-project`；
+  注入不再依赖主机名判定——由 adapter 标记的请求即使指向自定义 base URL 也会带上身份头。项目头只在
+  配置了 `opencode.project_seed` 时发送，避免用会话级随机值破坏上游的跨会话缓存复用。
+- **回退图支持跨 provider 跳转**：节点目标可写 `codex-fallback:<model>`，命中的跳会交给 provider bridge
+  走 fallback 上游；未配置 fallback 时该跳明确返回 503，不再被静默忽略。
 - **provider 清单与 fallback 行**：`GET /admin/opencode/status` 现在返回完整 provider 清单（含 `codex-official` 与
   `codex-fallback` 的 id、类型、启用状态与优先级）；配置了 fallback 上游后，`/v1/models` 会额外列出
   `codex-fallback:<model>` 行，使「后备供应商」和官方供应商一样可在模型列表里被发现。

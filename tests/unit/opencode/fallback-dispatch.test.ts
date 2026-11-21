@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { FallbackGraphSchema } from "@src/opencode/fallback-graph/model.js";
 import {
   failureFromErrorBody,
+  parseProviderTarget,
   routeFromNode,
   runFallbackChain,
   tierOf,
@@ -47,12 +48,24 @@ describe("fallback dispatch", () => {
   it("rewrites the route from a node target", () => {
     expect(routeFromNode({ id: "n2", target: "opencode-go:kimi-k3", enabled: true }, { resolvedModel: "opencode:glm-5.3", modelId: "glm-5.3" }))
       .toEqual({ resolvedModel: "opencode-go:kimi-k3", modelId: "kimi-k3", tier: "go" });
-    // Targets outside the opencode namespace are not dispatched by this path yet, so the
-    // current route is preserved rather than silently sending the request somewhere else.
+    // Provider-namespaced targets hop out of the opencode family: the route keeps the
+    // provider prefix so the attempt can hand the request to the provider bridge.
     expect(routeFromNode({ id: "n3", target: "codex-fallback:gpt-5.1", enabled: true }, { resolvedModel: "x", tier: "zen" }))
-      .toEqual({ resolvedModel: "x", tier: "zen" });
+      .toEqual({ resolvedModel: "codex-fallback:gpt-5.1", modelId: "gpt-5.1" });
+    // Not a model reference at all → keep the current route instead of guessing.
     expect(routeFromNode({ id: "n4", target: "not a model ref", enabled: true }, { resolvedModel: "x" }))
       .toEqual({ resolvedModel: "x" });
+    expect(routeFromNode({ id: "n5", target: "unknown-provider:gpt-5.1", enabled: true }, { resolvedModel: "x" }))
+      .toEqual({ resolvedModel: "x" });
+  });
+
+  it("recognizes only supported provider targets", () => {
+    expect(parseProviderTarget("codex-fallback:gpt-5.1")).toEqual({ providerId: "codex-fallback", modelId: "gpt-5.1" });
+    expect(parseProviderTarget("  codex-fallback: gpt-5.1  ")).toEqual({ providerId: "codex-fallback", modelId: "gpt-5.1" });
+    expect(parseProviderTarget("codex-fallback:")).toBeUndefined();
+    expect(parseProviderTarget("opencode:glm-5.3")).toBeUndefined();
+    expect(parseProviderTarget("codex-official:gpt-5.1")).toBeUndefined();
+    expect(parseProviderTarget("no-colon")).toBeUndefined();
   });
 
   it("returns the first successful attempt without extra hops", async () => {

@@ -238,9 +238,10 @@ sessionHeader = "ses_" + cacheIdentity[0:12](hex) + cacheIdentity[12:26](base32 
 ### 7.2 持久化与编辑
 
 - 存储：`data/opencode-fallback-graph.json`（原子写、schema 校验、版本号）。
-- 迁移期限制：节点 `target` 目前只支持 opencode 命名空间（`opencode:` / `opencode-go:` / `opencode-zen:` /
-  `opencode-zen-free:`）。指向 `codex-fallback:` 或其他 provider 的节点会被 dispatch 原样忽略（保留当前路由），
-  跨 provider 跳转要等 provider 统一分派完成后才开放。
+- 跨 provider 跳转：节点 `target` 支持 opencode 命名空间（`opencode:` / `opencode-go:` / `opencode-zen:` /
+  `opencode-zen-free:`）与 `codex-fallback:<model>`。命中后者时该跳不再经过 opencode 处理器，而是交给
+  provider bridge（`handleProviderRoute`）走 fallback 上游的 responses 线；未配置 fallback 上游时该跳
+  返回 503，图不会被静默改道。其他 provider 前缀仍按「原样忽略、保留当前路由」处理。
 - 管理 API：`GET/PUT /admin/opencode/fallback-graph`、`POST /admin/opencode/fallback-graph/validate`。
 - Web 编辑器（`web/src/pages/FallbackGraphPage.tsx`）：
   - 画布：节点拖拽、从节点边缘拖出连线建边；边选中后编辑条件与权重。

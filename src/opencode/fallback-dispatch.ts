@@ -13,6 +13,12 @@
 
 import type { Context } from "hono";
 import { handleOCGoResponses, type OCGoResponsesOptions } from "../routes/ocgo-responses.js";
+import { handleProviderRoute } from "../routes/provider-bridge.js";
+import { PASSTHROUGH_FORMAT } from "../routes/responses-passthrough.js";
+import type { HandleDirectRequestOptions } from "../routes/shared/proxy-handler-types.js";
+import type { FallbackUpstreamStore } from "../auth/fallback-upstream.js";
+import type { CodexResponsesRequest } from "../proxy/codex-types.js";
+import { CODEX_FALLBACK_PROVIDER_ID } from "./providers.js";
 import { parseOpenCodeModelRef, type OpenCodeTier } from "./namespace.js";
 import type { FallbackGraph, FallbackNode } from "./fallback-graph/model.js";
 import type { FallbackGraphStore } from "./fallback-graph/store.js";
@@ -20,6 +26,8 @@ import { chooseNextNode, createTraversalState, entryNodeFor, markVisited } from 
 
 export interface FallbackAwareOptions extends OCGoResponsesOptions {
   graphStore?: Pick<FallbackGraphStore, "read">;
+  /** Needed when a graph node targets the promoted fallback upstream. */
+  fallbackUpstream?: Pick<FallbackUpstreamStore, "get">;
 }
 
 export interface RouteLike {
@@ -57,15 +65,60 @@ export function failureFromErrorBody(status: number, body: unknown): string | un
   return undefined;
 }
 
+/** Provider-namespaced graph target, e.g. `codex-fallback:gpt-5.1`. */
+export function parseProviderTarget(target: string): { providerId: string; modelId: string } | undefined {
+  const trimmed = target.trim();
+  const separator = trimmed.indexOf(":");
+  if (separator <= 0) return undefined;
+  const providerId = trimmed.slice(0, separator).trim();
+  const modelId = trimmed.slice(separator + 1).trim();
+  if (!modelId) return undefined;
+  if (providerId !== CODEX_FALLBACK_PROVIDER_ID) return undefined;
+  return { providerId, modelId };
+}
+
 /** Rewrite the request route to target one graph node. */
 export function routeFromNode(node: FallbackNode, fallback: RouteLike): RouteLike {
   const ref = parseOpenCodeModelRef(node.target, { legacyOcgo: true });
-  if (!ref) return fallback;
-  return {
-    resolvedModel: node.target,
-    modelId: ref.modelId,
-    ...(ref.tier ? { tier: ref.tier } : (fallback.tier ? { tier: fallback.tier } : {})),
-  };
+  if (ref) {
+    return {
+      resolvedModel: node.target,
+      modelId: ref.modelId,
+      ...(ref.tier ? { tier: ref.tier } : (fallback.tier ? { tier: fallback.tier } : {})),
+    };
+  }
+  // Provider-namespaced targets hop to another provider entirely; the attempt decides how.
+  const provider = parseProviderTarget(node.target);
+  if (provider) {
+    return { resolvedModel: `${provider.providerId}:${provider.modelId}`, modelId: provider.modelId };
+  }
+  return fallback;
+}
+
+/** One attempt against the fallback upstream instead of an opencode model. */
+async function attemptProvider(
+  c: Context,
+  body: Record<string, unknown>,
+  target: { providerId: string; modelId: string },
+  options?: FallbackAwareOptions,
+): Promise<Response> {
+  const codexRequest = { ...body, model: target.modelId } as unknown as CodexResponsesRequest;
+  const proxyReq = {
+    codexRequest,
+    model: target.modelId,
+    isStreaming: body.stream === true,
+  } as HandleDirectRequestOptions["req"];
+  return handleProviderRoute({
+    c,
+    route: {
+      providerId: target.providerId,
+      resolvedModel: `${target.providerId}:${target.modelId}`,
+      modelId: target.modelId,
+    },
+    proxyReq,
+    fmt: PASSTHROUGH_FORMAT,
+    ...(options?.fallbackUpstream ? { fallbackUpstream: options.fallbackUpstream as never } : {}),
+  });
 }
 
 export interface FallbackChainOptions {
@@ -140,11 +193,19 @@ export async function handleWithFallback(
   };
   const startRoute = routeFromNode(entry, initialRoute);
 
+  // A node may target the promoted fallback upstream; that hop leaves the opencode family
+  // entirely and goes through the provider bridge instead of the opencode handler.
+  const attempt = (attemptRoute: RouteLike): Promise<Response> => {
+    const provider = parseProviderTarget(attemptRoute.resolvedModel);
+    if (provider) return attemptProvider(c, body, provider, options);
+    return handleOCGoResponses(c, body, attemptRoute, options);
+  };
+
   const result = await runFallbackChain({
     graph,
     startNodeId: entry.id,
     initialRoute: startRoute,
-    attempt: (attemptRoute) => handleOCGoResponses(c, body, attemptRoute, options),
+    attempt,
   });
   if (result.trail.length > 1) {
     c.header("x-opencode-fallback-trail", result.trail.join(">"));

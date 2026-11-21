@@ -169,7 +169,7 @@ export function createResponsesRoutes(
 
     if (routeMatch.kind === "ocgo") {
       if (c.req.path.endsWith("/review")) return unsupportedOCGoEndpoint(c);
-      return handleWithFallback(c, body, routeMatch, ocgo);
+      return handleWithFallback(c, body, routeMatch, ocgo ? { ...ocgo, ...(fallbackUpstream ? { fallbackUpstream } : {}) } : undefined);
     }
 
     if (routeMatch.kind === "not-found") {

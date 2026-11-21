@@ -337,7 +337,7 @@ export function FallbackGraphPage({ masterApiKey }: { masterApiKey?: string }) {
             <div class="flex gap-1">
               <input
                 class="w-full rounded border px-2 py-1"
-                placeholder="opencode:glm-5.3"
+                placeholder="opencode:glm-5.3 / codex-fallback:gpt-5.1"
                 value={Object.keys(graph.entrypoints)[0] ?? ""}
                 onInput={(event) => {
                   const value = (event.currentTarget as HTMLInputElement).value.trim();

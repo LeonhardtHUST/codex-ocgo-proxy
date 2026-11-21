@@ -359,7 +359,10 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   app.route("/", imagesRoutes);
   app.route("/", createOfficialAgentRoutes());
   app.route("/", proxyRoutes);
-  app.route("/", createModelRoutes(apiKeyPool, clientKeyPool));
+  app.route("/", createModelRoutes(apiKeyPool, clientKeyPool, {
+    listProviders: () => upstreamRouter.listProviders(),
+    fallbackUpstream: fallbackUpstreamStore,
+  }));
   app.route("/", webRoutes);
 
   // Start server

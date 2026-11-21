@@ -33,14 +33,24 @@ export function getProtocolMatrix(): ProtocolMatrix {
   return matrix;
 }
 
+/** Flat provider row for status output — deliberately narrower than ProviderDescriptor. */
+export interface OpenCodeProviderSummary {
+  id: string;
+  kind: string;
+  enabled: boolean;
+  priority: number;
+  label?: string;
+}
+
 export interface OpenCodeRuntimeStatus extends OpenCodeCatalogStatus {
-  providers: string[];
+  /** Provider inventory, so the dashboard can see every routable provider and its priority. */
+  providers: OpenCodeProviderSummary[];
   protocolCorrections: number;
   refreshRunning: boolean;
 }
 
 /** Status snapshot for `/admin/opencode/status`. */
-export function openCodeRuntimeStatus(providers: string[] = []): OpenCodeRuntimeStatus {
+export function openCodeRuntimeStatus(providers: OpenCodeProviderSummary[] = []): OpenCodeRuntimeStatus {
   const instance = getOpenCodeCatalog();
   return {
     ...instance.status(),

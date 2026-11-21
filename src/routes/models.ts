@@ -16,7 +16,9 @@ import { getConfig } from "../config.js";
 import type { ApiKeyPool } from "../auth/api-key-pool.js";
 import type { ClientKeyPool } from "../auth/client-key-pool.js";
 import { extractProxyApiKey } from "../utils/extract-api-key.js";
-import { getOpenCodeCatalog, openCodeRuntimeStatus } from "../opencode/catalog-runtime.js";
+import { getOpenCodeCatalog, openCodeRuntimeStatus, type OpenCodeProviderSummary } from "../opencode/catalog-runtime.js";
+import { CODEX_FALLBACK_PROVIDER_ID, type ProviderDescriptor } from "../opencode/providers.js";
+import type { FallbackUpstreamStore } from "../auth/fallback-upstream.js";
 import { getActiveRustRouter } from "../opencode/rust-router.js";
 import { buildModelViews, toCatalogRow } from "../opencode/models-view.js";
 
@@ -171,8 +173,40 @@ function getOpenCodeModelRows() {
   }
 }
 
-export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: ClientKeyPool): Hono {
+export interface ModelRouteOptions {
+  /** Provider registry snapshot; omit to keep the status payload empty. */
+  listProviders?: () => ProviderDescriptor[];
+  /** When configured, `/v1/models` also lists `codex-fallback:<model>` rows. */
+  fallbackUpstream?: Pick<FallbackUpstreamStore, "get">;
+}
+
+export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: ClientKeyPool, options: ModelRouteOptions = {}): Hono {
   const app = new Hono();
+
+  /** Provider inventory for the dashboard, including codex-official and codex-fallback. */
+  function providerSummaries(): OpenCodeProviderSummary[] {
+    const providers = options.listProviders?.() ?? [];
+    return providers.map((provider) => ({
+      id: provider.id,
+      kind: provider.kind,
+      enabled: provider.enabled,
+      priority: provider.priority,
+      ...(provider.label ? { label: provider.label } : {}),
+    }));
+  }
+
+  /**
+   * The fallback upstream serves Codex models under its own namespace. It is listed only when
+   * configured, so `/v1/models` never advertises an endpoint that would answer 503.
+   */
+  function codexFallbackRows(): OpenAIModel[] {
+    if (!options.fallbackUpstream?.get()) return [];
+    return getLiveCatalog().map((model) => ({
+      ...toOpenAIModel(model),
+      id: `${CODEX_FALLBACK_PROVIDER_ID}:${model.id}`,
+      owned_by: CODEX_FALLBACK_PROVIDER_ID,
+    }));
+  }
 
   function getClientKeyAllowedModels(c: import("hono").Context): string[] | null {
     if (!clientKeyPool) return null;
@@ -236,6 +270,10 @@ export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: Clien
       if (typeof id === "string" && !modelsById.has(id)) {
         modelsById.set(id, row as unknown as OpenAIModel);
       }
+    }
+    // Fallback upstream rows: same catalog, separate namespace, only when configured.
+    for (const row of codexFallbackRows()) {
+      if (!modelsById.has(row.id)) modelsById.set(row.id, row);
     }
 
     let data = [...modelsById.values()];
@@ -370,7 +408,7 @@ export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: Clien
         legacy_sidecar: config.opencode.rust_routing.legacy_sidecar,
         router: getActiveRustRouter()?.status() ?? null,
       },
-      ...openCodeRuntimeStatus(),
+      ...openCodeRuntimeStatus(providerSummaries()),
     });
   });
 

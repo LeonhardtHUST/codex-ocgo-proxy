@@ -1,13 +1,13 @@
-appId: com.codex-proxy.app
-productName: Codex Proxy
+appId: com.opencodex.router
+productName: OpenCodeX-Router
 electronVersion: "35.7.5"
 
 publish:
   provider: github
-  owner: icebear0828
-  repo: codex-proxy
+  owner: LeonhardtHUST
+  repo: codex-ocgo-proxy
 
-artifactName: "Codex-Proxy-${version}-${os}-${arch}.${ext}"
+artifactName: "OpenCodeX-Router-${version}-${os}-${arch}.${ext}"
 
 directories:
   output: release

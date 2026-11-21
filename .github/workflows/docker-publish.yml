@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   publish:
-    if: github.repository == 'icebear0828/codex-proxy'
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -136,7 +136,7 @@ jobs:
   # that crash inside the Alpine image. publish-lite downloads the artifact
   # and stages it into the dual-platform image context.
   addon-musl-arm64:
-    if: github.repository == 'icebear0828/codex-proxy'
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 30
     steps:
@@ -198,7 +198,7 @@ jobs:
   # Separate tags (:latest-lite / :sha-*-lite / version-lite) so the full
   # image remains the default.
   publish-lite:
-    if: github.repository == 'icebear0828/codex-proxy'
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     needs: addon-musl-arm64
     runs-on: ubuntu-latest
     timeout-minutes: 45

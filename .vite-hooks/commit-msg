@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+# Commit message gate: Angular convention + 必须包含汉字（规则见 commitlint.config.mjs）。
+# Installed by `vp hooks enable`; the dispatcher puts node_modules/.bin on PATH.
+if ! command -v commitlint >/dev/null 2>&1; then
+  echo "commitlint 未安装，跳过提交信息校验。先运行：vp install" >&2
+  exit 0
+fi
+exec commitlint --edit "$1"

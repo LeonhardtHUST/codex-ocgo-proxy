@@ -39,7 +39,7 @@ vi.mock("electron", () => ({
 
 vi.mock("../electron/constants.js", () => ({
   IS_MAC: false,
-  GITHUB_REPO: "icebear0828/codex-proxy",
+  GITHUB_REPO: "LeonhardtHUST/codex-ocgo-proxy",
 }));
 
 // Import after mocks are set up

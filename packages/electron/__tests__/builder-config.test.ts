@@ -34,9 +34,14 @@ const config = yaml.load(
 
 describe("electron-builder.yml", () => {
   it("has valid YAML structure", () => {
-    expect(config.appId).toBe("com.codex-proxy.app");
-    expect(config.productName).toBe("Codex Proxy");
+    expect(config.appId).toBe("com.opencodex.router");
+    expect(config.productName).toBe("OpenCodeX-Router");
     expect(config.electronVersion).toBeDefined();
+  });
+
+  it("publishes to this fork, not upstream", () => {
+    expect(config.publish.owner).toBe("LeonhardtHUST");
+    expect(config.publish.repo).toBe("codex-ocgo-proxy");
   });
 
   it("has valid publish config", () => {

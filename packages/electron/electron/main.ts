@@ -8,7 +8,9 @@
 import { app, BrowserWindow, Tray, Menu, shell, nativeImage, dialog } from "electron";
 import { resolve, join } from "path";
 import { pathToFileURL } from "url";
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync, cpSync } from "fs";
+import { homedir } from "os";
+import { resolveUserDataDir, userDataBaseDir } from "../../../scripts/portable/user-data.mjs";
 import {
   initAutoUpdater,
   getAutoUpdateState,
@@ -117,7 +119,19 @@ app.on("ready", async () => {
 
   try {
     // 1. Determine paths — must happen before importing backend
-    const userData = app.getPath("userData");
+    // Renaming the packaged app moves the per-user directory; migrate once so existing
+    // accounts/keys/logs are not orphaned. The legacy directory is copied, never deleted.
+    const resolvedUserData = resolveUserDataDir({
+      baseDir: userDataBaseDir({ platform: process.platform, env: process.env, home: homedir() }),
+      existsSync,
+      copySync: cpSync,
+    });
+    if (resolvedUserData.error) console.warn(`[desktop] ${resolvedUserData.error}`);
+    else if (resolvedUserData.migrated) console.log(`[desktop] migrated user data from ${resolvedUserData.legacyDir}`);
+    try {
+      if (resolvedUserData.dir !== app.getPath("userData")) app.setPath("userData", resolvedUserData.dir);
+    } catch { /* keep Electron's default when setPath is rejected */ }
+    const userData = resolvedUserData.dir;
     const dataDir = resolve(userData, "data");
     if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 

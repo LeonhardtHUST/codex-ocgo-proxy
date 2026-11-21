@@ -23,7 +23,7 @@ jobs:
   # Keep notes first: build jobs only start after the release exists with its
   # real notes, preserving the existing updater/release safety semantics.
   notes:
-    if: github.repository == 'icebear0828/codex-proxy'
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -475,7 +475,7 @@ jobs:
   notify:
     needs: [notes, build, build-lite, merge-mac-manifest]
     runs-on: ubuntu-latest
-    if: github.repository == 'icebear0828/codex-proxy' && always() && (startsWith(github.ref, 'refs/tags/v') || inputs.tag)
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy' && always() && (startsWith(github.ref, 'refs/tags/v') || inputs.tag)
     steps:
       - name: Checkout (scripts only)
         uses: actions/checkout@v4

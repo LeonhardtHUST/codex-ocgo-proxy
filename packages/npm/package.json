@@ -1,9 +1,10 @@
 {
-  "name": "@icebear0828/codex-proxy",
+  "name": "opencodex-router",
   "version": "0.0.0-dev",
   "description": "OpenAI-compatible proxy for the ChatGPT Codex Responses API, with a web dashboard, multi-account key pool and an Ollama-compatible bridge.",
   "license": "SEE LICENSE IN LICENCE",
   "bin": {
+    "opencodex-router": "bin/codex-proxy.mjs",
     "codex-proxy": "bin/codex-proxy.mjs"
   },
   "engines": {
@@ -30,10 +31,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/icebear0828/codex-proxy.git"
+    "url": "git+https://github.com/LeonhardtHUST/codex-ocgo-proxy.git"
   },
-  "homepage": "https://github.com/icebear0828/codex-proxy#readme",
-  "bugs": "https://github.com/icebear0828/codex-proxy/issues",
+  "homepage": "https://github.com/LeonhardtHUST/codex-ocgo-proxy#readme",
+  "bugs": "https://github.com/LeonhardtHUST/codex-ocgo-proxy/issues",
   "keywords": [
     "codex",
     "proxy",

@@ -8,6 +8,13 @@ data/
 /public/
 docs/*
 !docs/MULTI_AGENT_WORKFLOW.md
+!docs/OPENCODEX_ROUTER_DESIGN.md
+!docs/OPENCODE_CONTRACT.md
+!docs/AUTOSTART.md
+!docs/UI_SHELL_TAURI_EVALUATION.md
+!docs/BACKEND_RUST_EVALUATION.md
+!docs/recon/
+!docs/recon/**
 bin/*
 !bin/README.md
 .env
@@ -25,6 +32,8 @@ tmp/
 # Native addon build output (built via `cd native && npm install && npm run build`)
 native/target/
 native/*.node
+# Standalone Rust router build output
+native/ocx-router/target/
 
 # Test / tooling output
 coverage/

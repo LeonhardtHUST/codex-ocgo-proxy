@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   sync:
-    if: github.repository == 'icebear0828/codex-proxy'
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

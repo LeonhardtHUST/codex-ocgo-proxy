@@ -1,7 +1,7 @@
 {
-  "name": "codex-proxy",
+  "name": "opencodex-router",
   "version": "2.1.26",
-  "description": "Reverse proxy that exposes Codex Desktop Responses API as OpenAI-compatible /v1/chat/completions",
+  "description": "OpenCodeX-Router — local router that exposes Codex and OpenCode (go / zen / zen-free) as OpenAI, Anthropic and Gemini compatible endpoints",
   "type": "module",
   "workspaces": [
     "packages/*"
@@ -12,6 +12,8 @@
     "test:linux": "vitest run --config vitest.linux.config.ts",
     "test:watch": "vitest",
     "test:unit": "vitest run tests/unit",
+    "test:contract": "vitest run tests/contract",
+    "disk:report": "node scripts/maintenance/disk-report.mjs",
     "test:e2e": "vitest run tests/e2e",
     "test:integration": "vitest run tests/integration",
     "test:stress": "vitest run --config tests/vitest.config.ts",
@@ -48,6 +50,8 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-angular": "^21.2.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/js-yaml": "^4.0.0",
     "@types/node": "^22.0.0",

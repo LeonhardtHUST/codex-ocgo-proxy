@@ -29,3 +29,13 @@
 ## Keepalive safety
 
 - Account keepalive is disabled by default. Enabling the scheduler or calling `POST /admin/keepalive-run` sends real requests to `/codex/usage`; unit tests must mock `CodexApi`, and real-account execution requires explicit user authorization.
+
+## 提交规范
+
+- **Angular convention**：`type(scope): 说明`，type 限定为 `build|ci|docs|feat|fix|perf|refactor|revert|style|test`。
+- **提交信息必须包含汉字**：type 与 scope 用英文，说明部分用中文写清「改了什么、影响什么」。规则由 `commitlint.config.mjs` 强制（自定义 rule `commit-message-han`）。
+- 手动校验：`npx commitlint --edit .git/COMMIT_EDITMSG`；提交时由 `.vite-hooks/commit-msg` 自动执行。
+- **Node 依赖统一用 `vp` 管理**：`vp install`、`vp install -D <pkg>`、`vp run <script>`、`vp exec <cmd>`；不要直接用 npm/pnpm 增删依赖（`vp` 底层用 npm，`package-lock.json` 仍是唯一锁文件）。
+- Git 钩子由 `vp hooks enable` 安装（`core.hooksPath=.vite-hooks/_`）。新克隆后先执行一次，否则提交时不会校验。
+- **改动即提交**：完成一个可验证的改动批次后按主题立即提交，不要把大量改动长期留在工作区；提交前至少跑过 `npx tsc --noEmit` 与相关测试。
+

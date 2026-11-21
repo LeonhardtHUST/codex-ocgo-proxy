@@ -38,7 +38,7 @@ concurrency:
 
 jobs:
   addon:
-    if: github.repository == 'icebear0828/codex-proxy'
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     name: Build native addon (${{ matrix.triple }})
     strategy:
       fail-fast: false
@@ -95,7 +95,7 @@ jobs:
           retention-days: 3
 
   addon-musl:
-    if: github.repository == 'icebear0828/codex-proxy'
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     name: Build native addon (${{ matrix.triple }})
     strategy:
       fail-fast: false
@@ -182,7 +182,7 @@ jobs:
           retention-days: 3
 
   package:
-    if: github.repository == 'icebear0828/codex-proxy'
+    if: github.repository == 'LeonhardtHUST/codex-ocgo-proxy'
     name: Package and smoke test
     needs: [addon, addon-musl]
     runs-on: ubuntu-latest

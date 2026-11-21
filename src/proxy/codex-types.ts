@@ -77,6 +77,15 @@ export interface CodexResponsesRequest {
   /** OpenCode session identifier forwarded to Console Go upstreams. When the
    *  client does not send one, adapters substitute a stable per-conversation ID. */
   opencodeSessionId?: string;
+  /**
+   * Set by the OpenCode adapter: this request targets an opencode upstream, so the
+   * compatibility headers must be injected even when the base URL is a custom proxy host.
+   */
+  opencodeUpstream?: boolean;
+  /** `x-opencode-client` value; defaults to the pinned CLI client. */
+  opencodeClient?: string;
+  /** `x-opencode-project` value, already hashed by the caller. */
+  opencodeProjectId?: string;
 }
 
 /**

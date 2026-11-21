@@ -73,6 +73,16 @@ export function isValidSessionId(value: string): boolean {
 }
 
 /**
+ * Stable project identity for `x-opencode-project` (16 lowercase hex chars).
+ *
+ * Derived from a configured seed, never from the conversation: the upstream uses this header
+ * to group cache entries, so a per-conversation value would defeat cross-conversation reuse.
+ */
+export function buildProjectId(seed: string): string {
+  return sha256Hex(seed).slice(0, 16);
+}
+
+/**
  * Failures that must invalidate the conversation identity: the credential or the
  * free channel is done for, and reusing the identity would bind fresh traffic to a
  * poisoned session. Ordinary errors keep the identity so prefix caches survive.
@@ -200,6 +210,6 @@ export function buildOpenCodeHeaders(options: OpenCodeHeaderOptions): Record<str
     "x-opencode-session": buildOpenCodeSessionId(options.identity),
     "User-Agent": `opencode/${version}`,
   };
-  if (options.projectSeed) headers["x-opencode-project"] = sha256Hex(options.projectSeed).slice(0, 16);
+  if (options.projectSeed) headers["x-opencode-project"] = buildProjectId(options.projectSeed);
   return headers;
 }

@@ -88,7 +88,7 @@ export function createOpenCodeUpstream(options: CreateOpenCodeUpstreamOptions): 
     root: resolveUpstreamRoot(config, upstream),
     ...(entry ? { entry } : {}),
     matrix: options.matrix ?? getProtocolMatrix(),
-    cache: { aggregation: config.cache_header_aggregation },
+    cache: { aggregation: config.cache_header_aggregation, ...(config.project_seed ? { projectSeed: config.project_seed } : {}) },
   });
 }
 

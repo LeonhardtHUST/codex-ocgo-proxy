@@ -15,7 +15,8 @@ import { OpenAIUpstream } from "../proxy/openai-upstream.js";
 import { ResponsesUpstream } from "../proxy/responses-upstream.js";
 import { AnthropicUpstream } from "../proxy/anthropic-upstream.js";
 import { GeminiUpstream } from "../proxy/gemini-upstream.js";
-import { buildOpenCodeSessionId, deriveCacheIdentity, type PromptCacheRetention } from "./cache-identity.js";
+import { buildOpenCodeSessionId, buildProjectId, deriveCacheIdentity, type PromptCacheRetention } from "./cache-identity.js";
+import { DEFAULT_OPENCODE_CLIENT } from "../proxy/opencode-headers.js";
 import { OpenCodeError } from "./errors.js";
 import type { OpenCodeModelEntry, OpenCodeUpstreamId, OpenCodeWire } from "./model.js";
 import type { ProtocolMatrix } from "./protocol-matrix.js";
@@ -35,6 +36,8 @@ export interface OpenCodeAdapterOptions {
   cache?: {
     aggregation: boolean;
     retention?: PromptCacheRetention;
+    /** Stable project identity for `x-opencode-project`; omitted means the header is not sent. */
+    projectSeed?: string;
   };
   dispatcher?: Dispatcher;
   /** Log identifier; defaults to `opencode:<upstream>`. */
@@ -138,7 +141,18 @@ export class OpenCodeAdapter implements UpstreamAdapter {
    */
   #applyCacheIdentity(req: CodexResponsesRequest): CodexResponsesRequest {
     const cache = this.#options.cache;
-    if (!cache?.aggregation) return req;
+    // The adapter by construction talks to an opencode upstream, so header injection must not
+    // depend on a hostname match (custom base URLs would silently lose the identity headers).
+    const marked: CodexResponsesRequest = {
+      ...req,
+      opencodeUpstream: true,
+      ...(req.opencodeClient ? {} : { opencodeClient: DEFAULT_OPENCODE_CLIENT }),
+    };
+    if (!cache?.aggregation) {
+      return cache?.projectSeed
+        ? { ...marked, opencodeProjectId: buildProjectId(cache.projectSeed) }
+        : marked;
+    }
     const identity = deriveCacheIdentity({
       promptCacheKey: req.prompt_cache_key,
       clientSessionId: req.opencodeSessionId ?? undefined,
@@ -146,6 +160,10 @@ export class OpenCodeAdapter implements UpstreamAdapter {
       upstream: this.#options.upstream,
       instructions: req.instructions ?? undefined,
     });
-    return { ...req, opencodeSessionId: buildOpenCodeSessionId(identity) };
+    return {
+      ...marked,
+      opencodeSessionId: buildOpenCodeSessionId(identity),
+      ...(cache.projectSeed ? { opencodeProjectId: buildProjectId(cache.projectSeed) } : {}),
+    };
   }
 }

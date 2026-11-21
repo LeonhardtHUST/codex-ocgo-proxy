@@ -68,6 +68,11 @@ export const OpenCodeConfigSchema = z.object({
   }).strict().default({}),
   /** 统一缓存 header 聚合：为同一对话派生稳定的上游 session / project 身份。 */
   cache_header_aggregation: z.boolean().default(true),
+  /**
+   * 项目级身份种子（`x-opencode-project`）。留空则不发该 header——上游的 project
+   * 分组会影响跨会话缓存复用，用随机会话值冒充只会白白破坏命中率。
+   */
+  project_seed: z.string().trim().min(1).max(256).optional(),
   /** 接受 `ocgo:` 作为 `opencode:` 的别名（旧配置兼容）。 */
   legacy_ocgo_prefix: z.boolean().default(true),
   http_timeout_seconds: z.number().int().min(1).max(600).default(180),

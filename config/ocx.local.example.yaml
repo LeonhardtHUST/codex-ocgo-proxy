@@ -1,0 +1,39 @@
+# 合并进 data/local.yaml。本文件只放路由开关，不放任何凭据。
+opencode:
+  enabled: true
+
+  # ocgo: 作为 opencode: 的兼容别名（旧客户端继续可用）
+  legacy_ocgo_prefix: true
+
+  # 统一缓存 header 聚合：为同一对话派生稳定的上游 session 身份
+  cache_header_aggregation: true
+
+  # 项目级身份（x-opencode-project）。留空则不发该头——上游按 project 分组缓存，
+  # 用会话级随机值冒充只会破坏跨会话复用。
+  # project_seed: "my-team"
+
+  http_timeout_seconds: 180
+
+  # 上游基址可按需覆盖；认证走 Dashboard 里的凭据，不写在这里。
+  upstreams:
+    go:
+      base_url: "https://opencode.ai/inference/go"
+    zen:
+      base_url: "https://opencode.ai/inference"
+    zen_free:
+      enabled: false
+      # 开启后全部 opencode 凭据参与免费模型轮换，并按通道熔断
+      pool_all_keys: false
+
+  # 仓内 Rust 路由。关闭时全部走 TypeScript adapter，功能等价。
+  rust_routing:
+    enabled: true
+    # 留空时按内置顺序探测 native/ocx-router/target/release/ocx-router.exe
+    # binary_path: "D:\\app\\ocx-router.exe"
+    port: 8790
+    base_url: "http://127.0.0.1:8790/v1"   # 只接受回环地址
+    startup_timeout_ms: 8000
+    # 仍在使用外部 ocgo2api-rs 的旧部署改成 true
+    legacy_sidecar: false
+
+# 保留原有 server / API Key 设置。若为全新测试实例，先配一个非默认的 App 主访问 Key 再启用。

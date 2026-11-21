@@ -87,7 +87,7 @@ jobs:
               exit 1
             fi
             VERSION="${TAG#ocx-v}"
-            for f in LICENCE OCGO_LOCAL.md config/ocgo.local.example.yaml config/ocgo2api.example.toml; do
+            for f in LICENCE OCX_LOCAL.md config/ocx.local.example.yaml; do
               test -f "$f" || { echo "::error::missing $f in the tagged commit"; exit 1; }
             done
           else
@@ -484,7 +484,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/ocx-docs"
-          cp LICENCE OCGO_LOCAL.md config/ocgo.local.example.yaml config/ocgo2api.example.toml "$RUNNER_TEMP/ocx-docs/"
+          cp LICENCE OCX_LOCAL.md config/ocx.local.example.yaml "$RUNNER_TEMP/ocx-docs/"
           (cd "$RUNNER_TEMP/ocx-docs" && zip -q -r "$GITHUB_WORKSPACE/dist/ocx-docs.zip" .)
           unzip -l dist/ocx-docs.zip
           cp LICENCE dist/LICENCE
@@ -509,7 +509,7 @@ jobs:
           - Version: \`$VERSION\`
           - Source commit: \`$SHORT_SHA\` (verified reachable from \`dev\`)
           - License: Codex Proxy Non-Commercial Licence 1.0 (embedded in the app payload and attached below)
-          - Docs bundle: \`ocx-docs.zip\` (licence, \`OCGO_LOCAL.md\`, \`ocgo.local.example.yaml\`, \`ocgo2api.example.toml\`)
+          - Docs bundle: \`ocx-docs.zip\` (licence, \`OCX_LOCAL.md\`, \`ocx.local.example.yaml\`)
 
           ## Install
 

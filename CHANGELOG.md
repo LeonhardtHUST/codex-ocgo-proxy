@@ -43,6 +43,9 @@
   可执行名 `opencodex-router-unofficial`，构建标志 `OCGO_BUILD` → `OCX_BUILD`。
   历史 release 仍保留在 `ocgo-v*` 标签下；如需发布新版本，改用 `ocx-v<semver>-beta.<n>`。
 - **非官方构建的数据目录隔离**：常规版与非官方版各自迁移自己的历史目录，不会互相合并数据。
+- **本机部署文档改写**：`OCGO_LOCAL.md` → `OCX_LOCAL.md`，按当前形态重写（仓内 Rust 路由 / 兼容外部 sidecar /
+  纯 TypeScript 三种模式，含 `rust_routing` 字段表与显式降级说明）；配置样例合并为
+  `config/ocx.local.example.yaml` 并删掉已失效的 `config/ocgo2api.example.toml`，样例由单测校验与 schema 一致。
 - 项目更名为 **OpenCodeX-Router**：根/npm/electron 包名、`GITHUB_REPO`、workflow 的 `github.repository`
   守卫、`publish.owner/repo`、`artifactName`、electron `appId` / `productName` 一并调整；
   此前 fork 上多个 CI 因守卫指向上游而静默跳过。

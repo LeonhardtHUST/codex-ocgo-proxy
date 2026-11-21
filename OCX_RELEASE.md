@@ -8,7 +8,7 @@
 - 打包配置：`packages/electron/electron-builder.ocx.yml`
 - 通道标签：`ocx-v<semver>-beta.<n>`（例：`ocx-v2.1.26-beta.1`）
 - 产物：Windows x64 NSIS 安装包、Linux x64 AppImage，均为未签名 prerelease
-- 附带：`LICENCE`、`ocx-docs.zip`（`LICENCE` + `OCGO_LOCAL.md` + 两份示例配置）、
+- 附带：`LICENCE`、`ocx-docs.zip`（`LICENCE` + `OCX_LOCAL.md` + 一份配置样例）、
   `SHA256SUMS.txt`
 
 ## 明确不产出
@@ -29,8 +29,8 @@
 3. 待发布提交已合并进 `origin/dev`。工作流在 validate job 用 GitHub compare
    API 校验 tag 解引用后的提交（annotated tag 先 peel 到 commit，不信任
    `GITHUB_SHA`）已包含在 `dev` 历史中，未合并的提交会被拒绝；
-4. 打包所需文件已在提交里：`LICENCE`、`OCGO_LOCAL.md`、
-   `config/ocgo.local.example.yaml`、`config/ocgo2api.example.toml`。工作区里
+4. 打包所需文件已在提交里：`LICENCE`、`OCX_LOCAL.md`、
+   `config/ocx.local.example.yaml`。工作区里
    未提交的文件不会进入 CI 构建；缺少任一文件，tag 运行会在 validate 阶段失败。
 
 ## 发布步骤

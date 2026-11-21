@@ -40,7 +40,7 @@ export const ADDON_PACKAGES = [
   { name: "codex-tls-darwin-arm64", os: "darwin", cpu: "arm64", libc: null, file: "codex-tls.darwin-arm64.node" },
 ];
 
-export const MAIN_PACKAGE_BASE = "codex-proxy";
+export const MAIN_PACKAGE_BASE = "opencodex-router";
 
 export function mainPackageName(scope) {
   return `@${scope}/${MAIN_PACKAGE_BASE}`;

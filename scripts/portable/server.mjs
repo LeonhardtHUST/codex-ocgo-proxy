@@ -1,9 +1,10 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { homedir, tmpdir } from "node:os";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
+import { resolveUserDataDir, userDataBaseDir } from "./user-data.mjs";
 
 const APP_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = resolve(APP_DIR, "..");
@@ -12,7 +13,6 @@ const WEBVIEW2_INSTALL_HELP_URL = "https://developer.microsoft.com/microsoft-edg
 const WEBVIEW2_BOOTSTRAPPER_URL = "https://go.microsoft.com/fwlink/?linkid=2124703";
 const WEBVIEW2_BOOTSTRAPPER_NAME = "MicrosoftEdgeWebView2Setup.exe";
 const PROMPT_TIMEOUT_MS = 15_000;
-const ELECTRON_USER_DATA_SCOPE = ["@codex-proxy", "electron"];
 
 function usage() {
   console.log(`Usage: node app/server.mjs [options]
@@ -71,15 +71,12 @@ function displayHost(host) {
 }
 
 function defaultUserDataDir() {
-  let baseDir;
-  if (process.platform === "win32") {
-    baseDir = process.env.APPDATA?.trim() || join(homedir(), "AppData", "Roaming");
-  } else if (process.platform === "darwin") {
-    baseDir = join(homedir(), "Library", "Application Support");
-  } else {
-    baseDir = process.env.XDG_CONFIG_HOME?.trim() || join(homedir(), ".config");
-  }
-  return resolve(baseDir, ...ELECTRON_USER_DATA_SCOPE, "data");
+  const baseDir = userDataBaseDir({ platform: process.platform, env: process.env, home: homedir() });
+  // Same resolution the Electron shell uses, including the one-time legacy migration.
+  const resolved = resolveUserDataDir({ baseDir, existsSync, copySync });
+  if (resolved.error) console.warn(`[portable] ${resolved.error}`);
+  else if (resolved.migrated) console.log(`[portable] migrated user data from ${resolved.legacyDir}`);
+  return resolve(resolved.dir, "data");
 }
 
 function openExternal(url) {

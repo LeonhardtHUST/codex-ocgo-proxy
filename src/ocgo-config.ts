@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  hasOpenCodeNamespace,
+  isOpenCodeModelId,
+  stripOpenCodeNamespace,
+} from "./opencode/namespace.js";
 
 // A fixed numeric loopback authority avoids DNS, userinfo, and ambiguous URL forms.
 // Rust serves /v1/responses; don't let a configuration value change the request path.
@@ -22,10 +27,14 @@ export const OCGoConfigSchema = z.object({
 }).strict().default({});
 
 export const OCGO_MODEL_PREFIX = "ocgo:";
-export const hasOCGoModelPrefix = (value: string): boolean => value.trim().startsWith(OCGO_MODEL_PREFIX);
 
-export const isOCGoModelId = (value: string): boolean =>
-  value.length > 0 && value.length <= 128 && !/[^A-Za-z0-9._-]/.test(value);
+// Prefix handling now lives in the namespace module so `opencode:` and the three
+// tier prefixes behave identically to the legacy `ocgo:` prefix during migration.
+export const hasOCGoModelPrefix = (value: string): boolean => hasOpenCodeNamespace(value, { legacyOcgo: true });
+
+export const stripOCGoModelPrefix = (value: string): string | null => stripOpenCodeNamespace(value, { legacyOcgo: true });
+
+export const isOCGoModelId = (value: string): boolean => isOpenCodeModelId(value);
 
 export const isOCGoKey = (value: string): boolean =>
   value.length > 0 && value.length <= 4096 && !/[^A-Za-z0-9._~+/=-]/.test(value);

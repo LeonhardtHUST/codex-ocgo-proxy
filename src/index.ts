@@ -57,6 +57,15 @@ import { AnthropicUpstream } from "./proxy/anthropic-upstream.js";
 import { GeminiUpstream } from "./proxy/gemini-upstream.js";
 import { ApiKeyPool } from "./auth/api-key-pool.js";
 import { OCGoKeyStore } from "./auth/ocgo-key-store.js";
+import { startOpenCodeCatalogRefresh } from "./opencode/catalog-runtime.js";
+import { getOpenCodeCatalog } from "./opencode/catalog-runtime.js";
+import { RustRouterProcess, setActiveRustRouter } from "./opencode/rust-router.js";
+import { createKeySelector, createZenFreePool, freeModelPredicate } from "./opencode/zen-free-runtime.js";
+import { createOpenCodeZenFreeRoutes } from "./routes/admin/opencode-zen-free.js";
+import { createAutostartRoutes } from "./routes/admin/autostart.js";
+import { enableAutostart } from "./autostart/index.js";
+import { FallbackGraphStore } from "./opencode/fallback-graph/store.js";
+import { createOpenCodeFallbackGraphRoutes } from "./routes/admin/opencode-fallback-graph.js";
 import { createOCGoAdminRoutes } from "./routes/admin/ocgo.js";
 import { OCGoPool } from "./auth/ocgo-pool.js";
 import { ClientKeyPool } from "./auth/client-key-pool.js";
@@ -91,6 +100,9 @@ function urlHostForLocalRequest(host: string): string {
  * Core startup logic shared by CLI and Electron entry points.
  * Throws on config errors instead of calling process.exit().
  */
+/** Rust router owned by the running server, stopped on shutdown. */
+let rustRouter: RustRouterProcess | null = null;
+
 export async function startServer(options?: StartOptions): Promise<ServerHandle> {
   // Funnel uncaught errors / unhandled rejections into the local
   // error log before anything else can throw. Idempotent — Electron
@@ -207,8 +219,43 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   const hasApiKeys = apiKeyPool.getAll().length > 0;
   const upstreamRouter = createRuntimeUpstreamRouter(adapters, cfg.model_routing, apiKeyPool, proxyPool);
   const ocgoStore = new OCGoKeyStore();
-  const ocgo = { config: cfg.ocgo, pool: new OCGoPool(ocgoStore) };
-  if (ocgo.config?.enabled) upstreamRouter.enableOCGoNamespace();
+  const fallbackGraphStore = new FallbackGraphStore();
+  const baseOcgoPool = new OCGoPool(ocgoStore);
+  // zen-free aggregation: free models may rotate over every credential when enabled.
+  const zenFreePool = createZenFreePool({ readCredentials: () => ocgoStore.readCredentials() }, cfg.opencode);
+  const keySelector = createKeySelector({
+    pool: baseOcgoPool,
+    zenFree: zenFreePool,
+    isFreeModel: freeModelPredicate(getOpenCodeCatalog()),
+  });
+  const ocgo = { config: cfg.ocgo, pool: keySelector, opencode: cfg.opencode, graphStore: fallbackGraphStore };
+  /** Bridge for the chat-completions / messages inbound routes. */
+  const opencodeBridge = { legacy: cfg.ocgo, opencode: cfg.opencode, pool: keySelector };
+  if (ocgo.config?.enabled || cfg.opencode?.enabled) upstreamRouter.enableOCGoNamespace();
+  // OpenCode provider family: catalog refresh runs off the request path.
+  upstreamRouter.setLegacyOCGoPrefix(cfg.opencode?.legacy_ocgo_prefix ?? true);
+  if (cfg.opencode?.enabled) startOpenCodeCatalogRefresh(cfg.opencode);
+
+  // In-repo Rust router: started after the catalog exists, so it can be seeded.
+  rustRouter = null;
+  if (cfg.opencode?.enabled && cfg.opencode.rust_routing.enabled && !cfg.opencode.rust_routing.legacy_sidecar) {
+    rustRouter = new RustRouterProcess({
+      config: cfg.opencode.rust_routing,
+      upstreamRoots: {
+        go: cfg.opencode.upstreams.go.base_url,
+        zen: cfg.opencode.upstreams.zen.base_url,
+      },
+    });
+    setActiveRustRouter(rustRouter);
+    void rustRouter.start().then(async (ready) => {
+      if (!ready) {
+        console.warn(`[OpenCode] Rust router degraded: ${rustRouter?.status().lastError ?? "unknown"}`);
+        return;
+      }
+      await rustRouter?.pushCatalog(getOpenCodeCatalog());
+      console.log(`[OpenCode] Rust router ready on port ${cfg.opencode!.rust_routing.port}`);
+    });
+  }
   if (hasApiKeys) console.log(`[Init] API key pool: ${apiKeyPool.getAll().length} key(s) loaded`);
 
   // Daily memo model-list refresher (opt-out via local.yaml: api_keys.memo_auto_refresh: false)
@@ -250,8 +297,8 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   // Mount routes
   const authRoutes = createAuthRoutes(accountPool, refreshScheduler, apiKeyPool);
   const accountRoutes = createAccountRoutes(accountPool, refreshScheduler, cookieJar, proxyPool, fallbackUpstreamStore);
-  const chatRoutes = createChatRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore);
-  const messagesRoutes = createMessagesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore);
+  const chatRoutes = createChatRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore, opencodeBridge);
+  const messagesRoutes = createMessagesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore, opencodeBridge);
   const geminiRoutes = createGeminiRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore);
   const responsesRoutes = createResponsesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore, ocgo);
   const imagesRoutes = createImagesRoutes(accountPool, cookieJar, proxyPool, clientKeyPool, upstreamRouter);
@@ -272,6 +319,38 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
     store: ocgoStore,
     getMasterKey: () => getConfig().server.proxy_api_key ?? accountPool.getProxyApiKey() ?? null,
   }));
+  app.route("/", createOpenCodeFallbackGraphRoutes({
+    store: fallbackGraphStore,
+    getMasterKey: () => getConfig().server.proxy_api_key ?? accountPool.getProxyApiKey() ?? null,
+  }));
+  app.route("/", createOpenCodeZenFreeRoutes({
+    pool: zenFreePool,
+    config: cfg.opencode,
+    getMasterKey: () => getConfig().server.proxy_api_key ?? accountPool.getProxyApiKey() ?? null,
+  }));
+  app.route("/", createAutostartRoutes({
+    getSettings: () => ({
+      mode: cfg.autostart.mode,
+      scope: cfg.autostart.scope,
+      runAsAdmin: cfg.autostart.run_as_admin,
+      delaySeconds: cfg.autostart.delay_seconds,
+    }),
+    getMasterKey: () => getConfig().server.proxy_api_key ?? accountPool.getProxyApiKey() ?? null,
+  }));
+  // Desired-state reconciliation: only ever *adds* the entry. Removing autostart stays an
+  // explicit admin action so a config edit cannot silently unschedule the user's startup.
+  if (cfg.autostart.enabled) {
+    void enableAutostart({
+      mode: cfg.autostart.mode,
+      scope: cfg.autostart.scope,
+      runAsAdmin: cfg.autostart.run_as_admin,
+      delaySeconds: cfg.autostart.delay_seconds,
+    }).then((result) => {
+      if (result.ok) console.log(`[Autostart] registered (${cfg.autostart.mode}/${cfg.autostart.scope})`);
+      else if (result.elevationRequired) console.warn("[Autostart] registration needs elevation: POST /admin/autostart/elevate");
+      else console.warn(`[Autostart] registration failed: ${result.error ?? "unknown"}`);
+    });
+  }
   app.route("/", embeddingsRoutes);
   app.route("/", chatRoutes);
   app.route("/", messagesRoutes);
@@ -434,6 +513,9 @@ async function main() {
     if (shutdownCalled) return;
     shutdownCalled = true;
     console.log("\n[Shutdown] Stopping new connections...");
+    // Stop the sidecar before draining so no request is in flight to a dead router.
+    void rustRouter?.stop();
+    setActiveRustRouter(null);
 
     const forceExit = setTimeout(() => {
       console.error("[Shutdown] Timeout after 10s — forcing exit");

@@ -14,6 +14,7 @@ export const NAV_ITEMS: NavItem[] = [
   { hash: "#/client-keys", label: "clientKeys", icon: "key" },
   { hash: "#/api-keys", label: "apiKeys", icon: "api" },
   { hash: "#/ocgo", label: "ocgoKeys", icon: "api" },
+  { hash: "#/fallback-graph", label: "fallbackGraph", icon: "route" },
   { hash: "#/proxies", label: "proxySettings", icon: "route" },
   { hash: "#/usage-stats", label: "usageStats", icon: "chart" },
   { hash: "#/logs", label: "logs", icon: "document" },

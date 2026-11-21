@@ -16,6 +16,9 @@ import { getConfig } from "../config.js";
 import type { ApiKeyPool } from "../auth/api-key-pool.js";
 import type { ClientKeyPool } from "../auth/client-key-pool.js";
 import { extractProxyApiKey } from "../utils/extract-api-key.js";
+import { getOpenCodeCatalog, openCodeRuntimeStatus } from "../opencode/catalog-runtime.js";
+import { getActiveRustRouter } from "../opencode/rust-router.js";
+import { buildModelViews, toCatalogRow } from "../opencode/models-view.js";
 
 // --- Routes ---
 
@@ -146,6 +149,28 @@ function getLiveCatalog(): CodexModelInfo[] {
   return getModelCatalog().filter((m) => liveIds.has(m.id));
 }
 
+/** Whether the OpenCode provider family is enabled (false on config failures). */
+function openCodeEnabled(): boolean {
+  try {
+    return getConfig().opencode.enabled;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * OpenCode model rows for `/v1/models`. Served from the local catalog snapshot so a
+ * catalog hiccup can never affect model discovery.
+ */
+function getOpenCodeModelRows() {
+  if (!openCodeEnabled()) return [];
+  try {
+    return buildModelViews(getOpenCodeCatalog().listSelectable());
+  } catch {
+    return [];
+  }
+}
+
 export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: ClientKeyPool): Hono {
   const app = new Hono();
 
@@ -202,6 +227,14 @@ export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: Clien
     for (const modelId of apiKeyPool?.getActiveModels() ?? []) {
       if (!modelsById.has(modelId)) {
         modelsById.set(modelId, toRuntimeOpenAIModel(modelId));
+      }
+    }
+    // OpenCode models carry their own metadata (context, capabilities, efforts) so
+    // they arrive as full rows rather than bare runtime ids.
+    for (const row of getOpenCodeModelRows()) {
+      const id = row.id;
+      if (typeof id === "string" && !modelsById.has(id)) {
+        modelsById.set(id, row as unknown as OpenAIModel);
       }
     }
 
@@ -299,6 +332,46 @@ export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: Clien
   // Debug endpoint: model store internals
   app.get("/debug/models", (c) => {
     return c.json(getModelStoreDebug());
+  });
+
+  // Full OpenCode capability matrix: protocols, context, capabilities, pricing, quotas.
+  app.get("/v1/opencode/catalog", (c) => {
+    if (!openCodeEnabled()) {
+      return c.json({ object: "list", enabled: false, data: [] });
+    }
+    const catalog = getOpenCodeCatalog();
+    const allowed = getClientKeyAllowedModels(c);
+    let rows = catalog.list().map(toCatalogRow);
+    if (allowed) {
+      rows = rows.filter((row) => typeof row.model === "string" && allowed.some((id) => id.endsWith(`:${row.model}`)));
+    }
+    return c.json({ object: "list", enabled: true, status: catalog.status(), data: rows });
+  });
+
+  // OpenCode provider family status: catalog freshness, providers, protocol corrections.
+  app.get("/admin/opencode/status", (c) => {
+    const config = getConfig();
+    const configKey = config.server.proxy_api_key;
+    if (configKey) {
+      const authHeader = c.req.header("Authorization") ?? "";
+      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      if (token !== configKey) {
+        c.status(401);
+        return c.json({ error: "Unauthorized" });
+      }
+    }
+    return c.json({
+      enabled: openCodeEnabled(),
+      legacy_ocgo_prefix: config.opencode.legacy_ocgo_prefix,
+      cache_header_aggregation: config.opencode.cache_header_aggregation,
+      rust_routing: {
+        enabled: config.opencode.rust_routing.enabled,
+        port: config.opencode.rust_routing.port,
+        legacy_sidecar: config.opencode.rust_routing.legacy_sidecar,
+        router: getActiveRustRouter()?.status() ?? null,
+      },
+      ...openCodeRuntimeStatus(),
+    });
   });
 
   // Admin endpoint: trigger immediate model refresh

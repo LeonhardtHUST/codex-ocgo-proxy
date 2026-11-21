@@ -5,6 +5,7 @@ import { triggerImmediateRefresh } from "./models/model-fetcher.js";
 import { getConfigDir, getDataDir } from "./paths.js";
 import { ConfigSchema, FingerprintSchema } from "./config-schema.js";
 import { loadYaml, loadMergedConfig, applyEnvOverrides } from "./config-loader.js";
+import { migrateLegacyOCGoSection } from "./opencode/config.js";
 import type { AppConfig, FingerprintConfig } from "./config-schema.js";
 
 // Re-export schema, types, and constants so all existing importers keep working
@@ -27,6 +28,7 @@ export function loadConfig(configDir?: string): AppConfig {
   if (_config) return _config;
   const { raw, local } = loadMergedConfig(configDir);
   applyEnvOverrides(raw, local);
+  migrateLegacyOCGoSection(raw);
   _localOverrides = local;
   _config = ConfigSchema.parse(raw);
   logStore.setState({ maxBytes: _config.logs.max_bytes });
@@ -91,6 +93,7 @@ export function mutateClientConfig(patch: Partial<AppConfig["client"]>): void {
 export function reloadConfig(configDir?: string): AppConfig {
   const { raw, local } = loadMergedConfig(configDir);
   applyEnvOverrides(raw, local);
+  migrateLegacyOCGoSection(raw);
   _localOverrides = local;
   const fresh = ConfigSchema.parse(raw);
   _config = fresh;

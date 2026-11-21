@@ -1,4 +1,6 @@
 import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
+import { handleOpenCodeDirect, type OpenCodeBridge } from "./opencode-bridge.js";
+import { handleProviderRoute } from "./provider-bridge.js";
 import { Hono } from "hono";
 import type { Context } from "hono";
 import { ChatCompletionRequestSchema } from "../types/openai.js";
@@ -107,6 +109,7 @@ export function createChatRoutes(
   upstreamRouter?: UpstreamRouter,
   clientKeyPool?: ClientKeyPool,
   fallbackUpstream?: FallbackUpstreamStore,
+  opencodeBridge?: OpenCodeBridge,
 ): Hono {
   const app = new Hono();
 
@@ -143,7 +146,9 @@ export function createChatRoutes(
       ? { kind: "codex" as const }
       : { kind: "not-found" as const });
 
-    if (routeMatch.kind === "ocgo") return unsupportedOCGoEndpoint(c);
+    // OpenCode models go through the bridge below once the request is translated;
+    // without a bridge configured they stay unsupported, exactly as before.
+    if (routeMatch.kind === "ocgo" && !opencodeBridge) return unsupportedOCGoEndpoint(c);
     if (routeMatch.kind === "not-found") {
       c.status(404);
       return c.json(formatModelNotFound(req.model));
@@ -191,6 +196,27 @@ export function createChatRoutes(
         headers: Object.fromEntries(c.req.raw.headers.entries()),
       }),
     });
+
+    if (routeMatch.kind === "ocgo" && opencodeBridge) {
+      return handleOpenCodeDirect({
+        c,
+        bridge: opencodeBridge,
+        route: routeMatch,
+        proxyReq,
+        codexRequest,
+        fmt,
+      });
+    }
+
+    if (routeMatch.kind === "provider") {
+      return handleProviderRoute({
+        c,
+        route: routeMatch,
+        proxyReq,
+        fmt,
+        fallbackUpstream,
+      });
+    }
 
     if (routeMatch.kind === "api-key" || routeMatch.kind === "adapter") {
 

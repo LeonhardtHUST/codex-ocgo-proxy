@@ -116,11 +116,11 @@ describe("npm distribution staging", () => {
   });
 
   it("names packages after the owner scope and pins node:sqlite-capable engines", () => {
-    expect(mainPackageName("icebear0828")).toBe("@icebear0828/codex-proxy");
-    expect(mainPackageName("fork-owner")).toBe("@fork-owner/codex-proxy");
-    expect(MAIN_PACKAGE_BASE).toBe("codex-proxy");
+    expect(mainPackageName("icebear0828")).toBe("@icebear0828/opencodex-router");
+    expect(mainPackageName("fork-owner")).toBe("@fork-owner/opencodex-router");
+    expect(MAIN_PACKAGE_BASE).toBe("opencodex-router");
     expect(TEMPLATE.engines).toEqual({ node: ">=22.13" });
-    expect(TEMPLATE.bin).toEqual({ "codex-proxy": "bin/codex-proxy.mjs" });
+    expect(TEMPLATE.bin).toEqual({ "opencodex-router": "bin/codex-proxy.mjs", "codex-proxy": "bin/codex-proxy.mjs" });
   });
 
   it("stages addon manifests under the scope with their own platform files", () => {

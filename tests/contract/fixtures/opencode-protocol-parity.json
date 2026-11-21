@@ -1,0 +1,63 @@
+{
+  "$comment": "Golden fixtures for the OpenCode protocol contract. Both the TypeScript adapter path and the in-repo Rust router must produce these requests/events. Update deliberately: a diff here is a behaviour change.",
+  "model": "glm-5.3",
+  "scenarios": [
+    {
+      "name": "responses-stream",
+      "protocol": "responses",
+      "expectedPath": "/openai/v1/responses",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "body": "event: response.created\ndata: {\"type\":\"response.created\",\"response\":{\"id\":\"resp_1\"}}\n\nevent: response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"delta\":\"hi\"}\n\nevent: response.completed\ndata: {\"type\":\"response.completed\",\"response\":{\"id\":\"resp_1\"}}\n\n",
+      "expectedEvents": ["response.created", "response.output_text.delta", "response.completed"]
+    },
+    {
+      "name": "chat-stream",
+      "protocol": "chat-completions",
+      "expectedPath": "/openai/v1/chat/completions",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "body": "data: {\"id\":\"chatcmpl-1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"glm-5.3\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"hi\"}}]}\n\ndata: {\"id\":\"chatcmpl-1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"glm-5.3\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n",
+      "expectedEvents": ["response.created", "response.output_text.delta", "response.completed"]
+    },
+    {
+      "name": "messages-stream",
+      "protocol": "messages",
+      "expectedPath": "/anthropic/v1/messages",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "body": "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_1\",\"type\":\"message\",\"role\":\"assistant\",\"model\":\"glm-5.3\",\"content\":[],\"stop_reason\":null,\"usage\":{\"input_tokens\":3,\"output_tokens\":0}}}\n\nevent: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"hi\"}}\n\nevent: content_block_stop\ndata: {\"type\":\"content_block_stop\",\"index\":0}\n\nevent: message_delta\ndata: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\"},\"usage\":{\"output_tokens\":1}}\n\nevent: message_stop\ndata: {\"type\":\"message_stop\"}\n\n",
+      "expectedEvents": ["response.created", "response.output_text.delta", "response.completed"]
+    },
+    {
+      "name": "free-limit-429",
+      "protocol": "responses",
+      "expectedPath": "/openai/v1/responses",
+      "status": 429,
+      "contentType": "application/json",
+      "body": "{\"type\":\"error\",\"error\":{\"type\":\"FreeUsageLimitError\",\"message\":\"Free usage limit reached\"}}",
+      "expectedEvents": [],
+      "expectedErrorStatus": 429
+    },
+    {
+      "name": "invalid-key-401",
+      "protocol": "chat-completions",
+      "expectedPath": "/openai/v1/chat/completions",
+      "status": 401,
+      "contentType": "application/json",
+      "body": "{\"type\":\"error\",\"error\":{\"type\":\"AuthError\",\"message\":\"Missing API key.\"}}",
+      "expectedEvents": [],
+      "expectedErrorStatus": 401
+    },
+    {
+      "name": "model-denied-403",
+      "protocol": "messages",
+      "expectedPath": "/anthropic/v1/messages",
+      "status": 403,
+      "contentType": "application/json",
+      "body": "{\"error\":{\"type\":\"permission_error\",\"message\":\"model not enabled\"}}",
+      "expectedEvents": [],
+      "expectedErrorStatus": 403
+    }
+  ]
+}

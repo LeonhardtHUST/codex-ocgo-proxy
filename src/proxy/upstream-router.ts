@@ -17,6 +17,13 @@ import type { UpstreamAdapter } from "./upstream-adapter.js";
 import type { ApiKeyPool, ApiKeyEntry } from "../auth/api-key-pool.js";
 import { getModelAliases, getModelCatalog, getModelInfo, stripKnownModelSuffixes } from "../models/model-store.js";
 import { hasOCGoModelPrefix, isOCGoModelId, OCGO_MODEL_PREFIX } from "../ocgo-config.js";
+import { parseOpenCodeModelRef, tierToProviderId } from "../opencode/namespace.js";
+import {
+  CODEX_FALLBACK_PROVIDER_ID,
+  createDefaultProviderRegistry,
+  type ProviderDescriptor,
+  type ProviderRegistry,
+} from "../opencode/providers.js";
 
 /** Factory that creates an UpstreamAdapter for a given ApiKeyEntry. */
 export type AdapterFactory = (entry: ApiKeyEntry) => UpstreamAdapter;
@@ -25,15 +32,44 @@ export type UpstreamRouteMatch =
   | { kind: "api-key"; adapter: UpstreamAdapter; entry: ApiKeyEntry; resolvedModel?: string }
   | { kind: "adapter"; adapter: UpstreamAdapter; resolvedModel?: string }
   | { kind: "codex"; adapter?: UpstreamAdapter; resolvedModel?: string }
-  | { kind: "ocgo"; adapter?: never; resolvedModel: string; modelId?: string }
+  | { kind: "ocgo"; adapter?: never; resolvedModel: string; modelId?: string; tier?: string }
+  /**
+   * First-class provider route. `providerId` names a descriptor from the registry
+   * (`opencode-go` / `opencode-zen` / `opencode-zen-free` / `codex-fallback`).
+   * Route handlers translate this into the provider's credential + adapter.
+   */
+  | { kind: "provider"; adapter?: never; providerId: string; descriptor?: ProviderDescriptor; resolvedModel: string; modelId?: string }
   | { kind: "not-found" };
 
 export class UpstreamRouter {
   private apiKeyPool: ApiKeyPool | null = null;
   private adapterFactory: AdapterFactory | null = null;
   private ocgoEnabled = false;
+  /** Provider descriptors — single source of truth for what a provider is. */
+  private readonly providers: ProviderRegistry = createDefaultProviderRegistry();
+  /** Accept the legacy `ocgo:` prefix as an alias of `opencode:`. */
+  private legacyOcgoPrefix = true;
   /** Cache: apiKeyEntry.id → adapter instance. Invalidated when key or proxyId changes. */
   private dynamicAdapters = new Map<string, { apiKey: string; proxyId?: string | null; adapter: UpstreamAdapter }>();
+
+  /** Provider descriptors in routing order (dashboard / admin surfaces). */
+  listProviders(): ProviderDescriptor[] {
+    return this.providers.list();
+  }
+
+  getProvider(id: string): ProviderDescriptor | undefined {
+    return this.providers.get(id);
+  }
+
+  /** Lower priority runs first when several providers can serve one model. */
+  setProviderPriority(id: string, priority: number): void {
+    this.providers.setPriority(id, priority);
+  }
+
+  /** Toggle the legacy `ocgo:` alias (config: `opencode.legacy_ocgo_prefix`). */
+  setLegacyOCGoPrefix(enabled: boolean): void {
+    this.legacyOcgoPrefix = enabled;
+  }
 
   private splitExplicitProvider(model: string): { tag: string; bareModel: string } | null {
     const colonIdx = model.indexOf(":");
@@ -80,10 +116,40 @@ export class UpstreamRouter {
 
   resolveMatch(model: string): UpstreamRouteMatch {
     const normalized = model.trim();
-    if (this.isOCGoModel(normalized)) {
-      const id = normalized.slice(OCGO_MODEL_PREFIX.length);
-      return { kind: "ocgo", resolvedModel: normalized, ...(isOCGoModelId(id) ? { modelId: id } : {}) };
+
+    // `codex-fallback:<model>` selects the promoted fallback upstream explicitly.
+    if (normalized.startsWith(`${CODEX_FALLBACK_PROVIDER_ID}:`)) {
+      const bare = normalized.slice(CODEX_FALLBACK_PROVIDER_ID.length + 1).trim();
+      if (bare.length === 0) return { kind: "not-found" };
+      const descriptor = this.providers.get(CODEX_FALLBACK_PROVIDER_ID);
+      return {
+        kind: "provider",
+        providerId: CODEX_FALLBACK_PROVIDER_ID,
+        ...(descriptor ? { descriptor } : {}),
+        // Keep the full reference for logging, and the bare id for the upstream request.
+        resolvedModel: normalized,
+        modelId: bare,
+      };
     }
+
+    if (this.ocgoEnabled) {
+      // All opencode namespaces (legacy `ocgo:` plus `opencode*:`) stay on the OCGo
+      // dispatch path during the migration; route handlers are switched over separately.
+      const ref = parseOpenCodeModelRef(normalized, { legacyOcgo: this.legacyOcgoPrefix });
+      if (ref) {
+        return {
+          kind: "ocgo",
+          resolvedModel: normalized,
+          modelId: ref.modelId,
+          ...(ref.tier ? { tier: ref.tier } : {}),
+        };
+      }
+      if (hasOCGoModelPrefix(normalized) &&
+          (this.legacyOcgoPrefix || !normalized.startsWith(OCGO_MODEL_PREFIX))) {
+        return { kind: "ocgo", resolvedModel: normalized };
+      }
+    }
+
     return this.resolveMatchInternal(normalized, new Set<string>());
   }
 

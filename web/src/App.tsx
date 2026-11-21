@@ -14,6 +14,7 @@ import { Footer } from "./components/Footer";
 import { Sidebar } from "./components/Sidebar";
 import { ApiKeyManager } from "./components/ApiKeyManager";
 import { OCGoKeysPage } from "./pages/OCGoKeysPage";
+import { FallbackGraphPage } from "./pages/FallbackGraphPage";
 import { ProxySettings } from "./pages/ProxySettings";
 import { AccountManagement } from "./pages/AccountManagement";
 import { UsageStats } from "./pages/UsageStats";
@@ -258,6 +259,10 @@ function Dashboard() {
 
           {activeTab === "#/ocgo" && (
             <OCGoKeysPage masterApiKey={status.apiKey} />
+          )}
+
+          {activeTab === "#/fallback-graph" && (
+            <FallbackGraphPage masterApiKey={status.apiKey} />
           )}
 
           {activeTab === "#/proxies" && (

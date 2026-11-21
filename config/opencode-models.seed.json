@@ -1,0 +1,2727 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-21",
+  "source": "docs/recon/OPENCODE_UPSTREAM_MATRIX.md",
+  "models": [
+    {
+      "id": "gpt-5",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5-codex",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5-nano",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.1",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.1-codex",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.1-codex-max",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.1-codex-mini",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.2",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.2-codex",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.3-codex",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.3-codex-spark",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 128000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.4",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.4-mini",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.4-nano",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 400000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.4-pro",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.5",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.5-pro",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-6-astra",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-6-sol",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-6-luna",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-6.1-sol",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-6.2-sol",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-6.2-astra",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "grok-4.5",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 500000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "grok-4.6",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 500000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "grok-4.7",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 500000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "grok-build-0.1",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 256000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "muse-spark-1.2",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "muse-spark-1.3",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "muse-wonder-1.0",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "muse-ember-1.0",
+      "upstream": "zen",
+      "protocol": "responses",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "glm-5.3",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "high",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "glm-5.3-flash",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "high",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "kimi-k2.7-code",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 262144,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "kimi-k3",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "low",
+        "high",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "minimax-m2.5",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 204800,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "minimax-m2.7",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 204800,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "minimax-m3",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 512000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "deepseek-v4.1-flash",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "high",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "high",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "qwen3.8-max",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 262144,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "mistral-large-4",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": 524288,
+      "reasoningEfforts": [
+        "none",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-fable-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-fable-5-1",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-fable-5-2",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-opus-4-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 200000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-opus-4-6",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-opus-4-7",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-opus-4-8",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-opus-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-opus-5-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-sonnet-4-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-sonnet-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-sonnet-5-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-haiku-4-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 200000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "claude-haiku-5-5",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "qwen3.5-plus",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 262144,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "qwen3.6-plus",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 262144,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "qwen3.8-flash",
+      "upstream": "zen",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-3.5-flash-lite",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-3.6-flash",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-3.7-flash",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-4-argon",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-4-carbon",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-4-hydrogen",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-4-neon",
+      "upstream": "zen",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "jev-1.13",
+      "upstream": "zen",
+      "protocol": "systemone",
+      "contextWindow": 64000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-decision-1",
+      "upstream": "zen",
+      "protocol": "systemone",
+      "contextWindow": 262144,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-6-luna-decision",
+      "upstream": "zen",
+      "protocol": "systemone",
+      "contextWindow": 1050000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-image-2.5-sunburst",
+      "upstream": "zen",
+      "protocol": "images",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "image"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "grok-imagine-image-2.0",
+      "upstream": "zen",
+      "protocol": "images",
+      "contextWindow": 64000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "image"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-nano-banana-2.1",
+      "upstream": "zen",
+      "protocol": "images",
+      "contextWindow": 131072,
+      "reasoningEfforts": [
+        "minimal",
+        "medium",
+        "high"
+      ],
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "image"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gpt-live-1",
+      "upstream": "zen",
+      "protocol": "live",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "big-pickle",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "mimo-v2.6-flash-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "deepseek-v4.1-flash-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "longcat-2.5-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "iceman-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "beam-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "flint-40b-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "nemotron-3.5-super-vl-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "nemotron-3.5-lightning-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "hy4-flash-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "tidepool-alpha-free",
+      "upstream": "zen",
+      "protocol": "chat-completions",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "jev-1.13-free",
+      "upstream": "zen",
+      "protocol": "systemone",
+      "contextWindow": null,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "text-embedding-3-small",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 8192,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "text-embedding-3-large",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 8192,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-embedding-001",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 2048,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "gemini-embedding-2",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 8192,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "codestral-embed",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 8192,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "mistral-embed",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 8000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "qwen3-embedding-8b",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 32768,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "bge-m3",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 8192,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "cohere-embed-v5-fast",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 128000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "cohere-embed-v5-pro",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 128000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "voyage-4",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 32000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "voyage-code-4",
+      "upstream": "zen",
+      "protocol": "embeddings",
+      "contextWindow": 32000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": false,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": null
+    },
+    {
+      "id": "deepseek-v4.1-flash",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        100,
+        200,
+        105
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "glm-5.3",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        500,
+        1000,
+        505
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "glm-5.3-flash",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        180,
+        65
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "kimi-k2.7-code",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 262144,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        180,
+        65
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "kimi-k3",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "kimi-k3.1-pro",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "minimax-m3.1-flash",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        20,
+        80,
+        25
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "mimo-v2.6-flash",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        120,
+        65
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "mimo-v2.6-pro",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "hy3",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 256000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        240,
+        65
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "hy4",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        240,
+        65
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "hy4-preview",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1024000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        30,
+        120,
+        35
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "longcat-2.0",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        240,
+        65
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "step-5-preview",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "grok-4.7",
+      "upstream": "go",
+      "protocol": "responses",
+      "contextWindow": 500000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": false
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "upstream": "go",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": false
+    },
+    {
+      "id": "gpt-6-luna",
+      "upstream": "go",
+      "protocol": "responses",
+      "contextWindow": 1050000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": false
+    },
+    {
+      "id": "muse-spark-1.2-contributor",
+      "upstream": "go",
+      "protocol": "responses",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        120,
+        65
+      ],
+      "zeroDataRetention": false
+    },
+    {
+      "id": "muse-spark-1.3-contributor",
+      "upstream": "go",
+      "protocol": "responses",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        120,
+        65
+      ],
+      "zeroDataRetention": false
+    },
+    {
+      "id": "claude-haiku-5-5",
+      "upstream": "go",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": false
+    },
+    {
+      "id": "minimax-m3",
+      "upstream": "go",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        180,
+        65
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "qwen3.8-max",
+      "upstream": "go",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "qwen3.8-flash",
+      "upstream": "go",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        30,
+        90,
+        35
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "qwen3.7-plus",
+      "upstream": "go",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        60,
+        180,
+        65
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "qwen4-max",
+      "upstream": "go",
+      "protocol": "messages",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        15,
+        60,
+        20
+      ],
+      "zeroDataRetention": true
+    },
+    {
+      "id": "gemini-4-argon",
+      "upstream": "go",
+      "protocol": "google",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": false,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": [
+        30,
+        120,
+        35
+      ],
+      "zeroDataRetention": false
+    },
+    {
+      "id": "beam-free",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": false
+    },
+    {
+      "id": "iceman-contributor-free",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 262144,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": false
+    },
+    {
+      "id": "longcat-2.5-free",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1000000,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": true
+    },
+    {
+      "id": "hy4-flash-free",
+      "upstream": "go",
+      "protocol": "chat-completions",
+      "contextWindow": 1048576,
+      "reasoningEfforts": null,
+      "free": true,
+      "selectable": true,
+      "inputModalities": [
+        "text"
+      ],
+      "outputModalities": [
+        "text"
+      ],
+      "goMonthlyUsage": null,
+      "zeroDataRetention": true
+    }
+  ]
+}

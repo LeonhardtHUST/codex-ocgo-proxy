@@ -2,7 +2,7 @@ import { Agent, fetch as directFetch } from "undici";
 import type { CodexResponsesRequest, CodexSSEEvent } from "./codex-types.js";
 import { parseSSEStream } from "./codex-sse.js";
 import type { UpstreamAdapter } from "./upstream-adapter.js";
-import { isOCGoKey, isOCGoModelId, ocgoResponsesUrl, OCGO_MODEL_PREFIX } from "../ocgo-config.js";
+import { isOCGoKey, isOCGoModelId, ocgoResponsesUrl, stripOCGoModelPrefix } from "../ocgo-config.js";
 
 import { classifyOCGoFailure, OCGoError, safeRetryAfter } from "./ocgo-errors.js";
 export { OCGoError } from "./ocgo-errors.js";
@@ -85,7 +85,7 @@ export class OCGoUpstream implements UpstreamAdapter {
   }
 
   async createResponse(req: CodexResponsesRequest, signal: AbortSignal, onDispatch?: () => void): Promise<Response> {
-    const id = req.model.startsWith(OCGO_MODEL_PREFIX) ? req.model.slice(OCGO_MODEL_PREFIX.length) : "";
+    const id = stripOCGoModelPrefix(req.model) ?? "";
     if (!isOCGoModelId(id)) throw new OCGoError(400, "ocgo_invalid_model", "Invalid OCGo model ID");
     if (req.previous_response_id !== undefined || hasUnsupportedOCGoInput(req.input) ||
         req.tools?.some((tool) => asRecord(tool)?.type !== "function")) {

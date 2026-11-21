@@ -36,6 +36,8 @@ import {
 } from "../proxy/openai-subagent.js";
 import { PASSTHROUGH_FORMAT } from "./responses-passthrough.js";
 import { handleOCGoResponses, unsupportedOCGoEndpoint, type OCGoResponsesOptions } from "./ocgo-responses.js";
+import { handleWithFallback } from "../opencode/fallback-dispatch.js";
+import { handleProviderRoute } from "./provider-bridge.js";
 import { handleCompact } from "./responses-compact.js";
 import { handleCodexAuxiliaryJson } from "./codex-auxiliary.js";
 import {
@@ -167,7 +169,7 @@ export function createResponsesRoutes(
 
     if (routeMatch.kind === "ocgo") {
       if (c.req.path.endsWith("/review")) return unsupportedOCGoEndpoint(c);
-      return handleOCGoResponses(c, body, routeMatch, ocgo);
+      return handleWithFallback(c, body, routeMatch, ocgo);
     }
 
     if (routeMatch.kind === "not-found") {
@@ -363,6 +365,16 @@ export function createResponsesRoutes(
         headers: Object.fromEntries(c.req.raw.headers.entries()),
       }),
     });
+
+    if (routeMatch?.kind === "provider") {
+      return handleProviderRoute({
+        c,
+        route: routeMatch,
+        proxyReq,
+        fmt: PASSTHROUGH_FORMAT,
+        fallbackUpstream,
+      });
+    }
 
     if (routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter") {
       const directModel = routeMatch.resolvedModel ?? rawModel;

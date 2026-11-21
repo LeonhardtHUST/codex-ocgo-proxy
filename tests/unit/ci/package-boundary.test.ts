@@ -72,10 +72,10 @@ describe("root package boundary", () => {
   const lockElectron = requireRecord(lockPackages, "packages/electron");
   const scripts = requireRecord(pkg, "scripts");
 
-  it("keeps the root package identified as codex-proxy", () => {
-    expect(pkg.name).toBe("codex-proxy");
-    expect(lock.name).toBe("codex-proxy");
-    expect(lockRoot.name).toBe("codex-proxy");
+  it("keeps the root package identified as opencodex-router", () => {
+    expect(pkg.name).toBe("opencodex-router");
+    expect(lock.name).toBe("opencodex-router");
+    expect(lockRoot.name).toBe("opencodex-router");
     expect(pkg.productName).toBeUndefined();
     expect(pkg.main).toBeUndefined();
   });

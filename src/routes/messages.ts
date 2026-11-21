@@ -4,6 +4,8 @@
  */
 
 import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
+import { handleOpenCodeDirect, type OpenCodeBridge } from "./opencode-bridge.js";
+import { handleProviderRoute } from "./provider-bridge.js";
 import { Hono, type Context } from "hono";
 import type { StatusCode } from "hono/utils/http-status";
 import { AnthropicCountTokensRequestSchema, AnthropicMessagesRequestSchema } from "../types/anthropic.js";
@@ -112,6 +114,7 @@ export function createMessagesRoutes(
   upstreamRouter?: UpstreamRouter,
   clientKeyPool?: ClientKeyPool,
   fallbackUpstream?: FallbackUpstreamStore,
+  opencodeBridge?: OpenCodeBridge,
 ): Hono {
   const app = new Hono();
 
@@ -156,7 +159,7 @@ export function createMessagesRoutes(
     }
 
     const routeMatch = upstreamRouter?.resolveMatch(req.model);
-    if (routeMatch?.kind === "ocgo") return unsupportedOCGoEndpoint(c);
+    if (routeMatch?.kind === "ocgo" && !opencodeBridge) return unsupportedOCGoEndpoint(c);
     const allowUnauthenticated = routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter";
 
     // Auth check (a configured fallback upstream apikey is a valid last-resort).
@@ -213,6 +216,27 @@ export function createMessagesRoutes(
         headers: Object.fromEntries(c.req.raw.headers.entries()),
       }),
     });
+
+    if (routeMatch?.kind === "ocgo" && opencodeBridge) {
+      return handleOpenCodeDirect({
+        c,
+        bridge: opencodeBridge,
+        route: routeMatch,
+        proxyReq,
+        codexRequest,
+        fmt,
+      });
+    }
+
+    if (routeMatch?.kind === "provider") {
+      return handleProviderRoute({
+        c,
+        route: routeMatch,
+        proxyReq,
+        fmt,
+        fallbackUpstream,
+      });
+    }
 
     if (routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter") {
       const directModel = routeMatch.resolvedModel ?? req.model;

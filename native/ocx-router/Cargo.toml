@@ -1,0 +1,30 @@
+[package]
+name = "ocx-router"
+version = "0.1.0"
+edition = "2021"
+description = "Loopback request router for the OpenCode provider family (OpenCodeX-Router)"
+license-file = "../../LICENCE"
+
+[[bin]]
+name = "ocx-router"
+path = "src/main.rs"
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal", "time", "io-util"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Same TLS stack as the napi addon so both binaries share one rustls / reqwest build.
+reqwest = { version = "0.12.28", default-features = false, features = [
+  "rustls-tls-native-roots",
+  "stream",
+  "json",
+  "gzip",
+  "brotli",
+] }
+futures-util = "0.3"
+
+[profile.release]
+lto = true
+strip = true
+opt-level = "z"

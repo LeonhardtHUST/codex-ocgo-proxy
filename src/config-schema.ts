@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { OCGoConfigSchema } from "./ocgo-config.js";
+import { OpenCodeConfigSchema } from "./opencode/config.js";
 
 export const ROTATION_STRATEGIES = ["least_used", "round_robin", "sticky"] as const;
 
@@ -298,6 +299,8 @@ export const ConfigSchema = z.object({
     ).default({}),
   }).default({}),
   ocgo: OCGoConfigSchema,
+  /** OpenCode provider family (go / zen / zen-free) — see docs/OPENCODEX_ROUTER_DESIGN.md §2. */
+  opencode: OpenCodeConfigSchema,
   /** Explicit model → provider name routing table. */
   model_routing: z.record(z.string(), z.string()).default({}),
   /**
@@ -350,6 +353,19 @@ export const ConfigSchema = z.object({
     /** Milliseconds to wait between batches (throttle upstream traffic). */
     per_account_delay_ms: z.number().int().min(0).max(3_600_000).default(1000),
   }).default({}),
+  /**
+   * Windows autostart entry. Opt-in only: the server never registers itself, and
+   * "task" / machine scope need one explicit elevation (see /admin/autostart/elevate).
+   */
+  autostart: z.object({
+    enabled: z.boolean().default(false),
+    /** registry = HKCU Run key, startup = Startup folder, task = Task Scheduler (admin). */
+    mode: z.enum(["registry", "task", "startup"]).default("registry"),
+    scope: z.enum(["user", "machine"]).default("user"),
+    /** Only meaningful for "task": registers with RL HIGHEST so it starts elevated. */
+    run_as_admin: z.boolean().default(false),
+    delay_seconds: z.number().int().min(0).max(600).default(0),
+  }).strict().default({}),
 });
 
 export type AppConfig = z.infer<typeof ConfigSchema>;

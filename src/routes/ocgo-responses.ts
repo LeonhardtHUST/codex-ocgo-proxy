@@ -7,6 +7,10 @@ import { X_OPENCODE_SESSION_HEADER } from "../proxy/opencode-headers.js";
 import type { AppConfig } from "../config-schema.js";
 import type { CodexResponsesRequest } from "../proxy/codex-types.js";
 import { hasUnsupportedOCGoInput, OCGoError, OCGoUpstream } from "../proxy/ocgo-upstream.js";
+import type { UpstreamAdapter } from "../proxy/upstream-adapter.js";
+import type { OpenCodeConfig } from "../opencode/config.js";
+import type { OpenCodeTier } from "../opencode/namespace.js";
+import { createOpenCodeUpstream, isOpenCodeServing, resolveTimeoutSeconds } from "../opencode/dispatch.js";
 import { isRecord } from "../translation/shared-utils.js";
 import { collectPassthrough, extractResponseUsage } from "./responses-passthrough.js";
 import { recordClientKeyUsage } from "./shared/proxy-handler-utils.js";
@@ -14,6 +18,14 @@ import { recordClientKeyUsage } from "./shared/proxy-handler-utils.js";
 export interface OCGoResponsesOptions {
   config: AppConfig["ocgo"];
   pool: Pick<OCGoPool, "acquire" | "beginClientRequest">;
+  /**
+   * OpenCode provider family. When present, requests are forwarded straight to
+   * opencode.ai on the protocol the catalog declares; when absent, the legacy
+   * loopback OCGo sidecar is used unchanged.
+   */
+  opencode?: OpenCodeConfig;
+  /** Test seam: build the adapter for one attempt. */
+  createUpstream?: (args: { modelId: string; apiKey: string; tier?: OpenCodeTier }) => UpstreamAdapter;
 }
 
 function localSession(c: Context, body: Record<string, unknown>): OCGoSession | undefined {
@@ -39,7 +51,7 @@ export function unsupportedOCGoEndpoint(c: Context): Response {
 export async function handleOCGoResponses(
   c: Context,
   body: Record<string, unknown>,
-  route: { resolvedModel: string; modelId?: string },
+  route: { resolvedModel: string; modelId?: string; tier?: string },
   options?: OCGoResponsesOptions,
 ): Promise<Response> {
   // Do not expose a paid upstream when the app is running in no-auth mode.
@@ -55,7 +67,14 @@ export async function handleOCGoResponses(
   if (typeof body.input !== "string" && !Array.isArray(body.input)) {
     return ocgoErrorResponse(c, 400, "ocgo_invalid_input", "OCGo input must be text or an array of input items");
   }
-  if (!options?.config.enabled) return ocgoErrorResponse(c, 503, "ocgo_unavailable", "OCGo is not available");
+  if (!options || !isOpenCodeServing({ legacyEnabled: options.config.enabled, opencode: options.opencode })) {
+    return ocgoErrorResponse(c, 503, "ocgo_unavailable", "OCGo is not available");
+  }
+  const tier = route.tier as OpenCodeTier | undefined;
+  const timeoutSeconds = resolveTimeoutSeconds({
+    opencode: options.opencode,
+    legacyTimeoutSeconds: options.config.timeout_seconds,
+  });
 
   const request: CodexResponsesRequest = {
     model: route.resolvedModel,
@@ -77,7 +96,7 @@ export async function handleOCGoResponses(
   }
 
   const abort = new AbortController();
-  const deadline = AbortSignal.timeout(options.config.timeout_seconds * 1000);
+  const deadline = AbortSignal.timeout(timeoutSeconds * 1000);
   const clientSignal = AbortSignal.any([c.req.raw.signal, abort.signal]);
   const signal = AbortSignal.any([clientSignal, deadline]);
   let lease: OCGoLease | undefined;
@@ -102,7 +121,11 @@ export async function handleOCGoResponses(
     if (selection.kind !== "selected") return ocgoErrorResponse(c, 503, "ocgo_no_credential", "No OCGo credential is available for this model");
     lease = selection.lease;
     const send = async (attempt: OCGoLease) => {
-      const upstream = new OCGoUpstream(options.config.base_url, attempt.apiKey, options.config.timeout_seconds);
+      const upstream = options.createUpstream
+        ? options.createUpstream({ modelId, apiKey: attempt.apiKey, ...(tier ? { tier } : {}) })
+        : options.opencode
+          ? createOpenCodeUpstream({ config: options.opencode, modelId, tier, apiKey: attempt.apiKey })
+          : new OCGoUpstream(options.config.base_url, attempt.apiKey, timeoutSeconds);
       try {
         finishAttempt = undefined;
         const response = await upstream.createResponse(request, signal, () => { finishAttempt = attempt.beginAttempt(); });

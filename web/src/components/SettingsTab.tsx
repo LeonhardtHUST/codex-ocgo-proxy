@@ -1,4 +1,5 @@
 import { GeneralSettings } from "./GeneralSettings";
+import { AutostartSettings } from "./AutostartSettings";
 import { LogsSettings } from "./LogsSettings";
 import { ModelAliasSettings } from "./ModelAliasSettings";
 import { OllamaBridgeSettings } from "./OllamaBridgeSettings";
@@ -24,6 +25,7 @@ export function SettingsTab(props: SettingsTabProps) {
       <QuotaSettings />
       <PolicyGuardSettings />
       <RotationSettings />
+      <AutostartSettings />
       <LogsSettings />
       <OllamaBridgeSettings />
     </div>

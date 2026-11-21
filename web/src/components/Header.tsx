@@ -79,16 +79,16 @@ export function Header({ onAddAccount, onCheckUpdate, onOpenUpdateModal, checkin
         <div class={`flex w-full ${showBrand ? "max-w-[960px] justify-between" : "max-w-none justify-between lg:justify-end"} items-center gap-4`}>
           {/* Logo & Title */}
           {showBrand ? <div class="flex min-w-0 items-center gap-3">
-            <img src="/icon.png" alt="Codex Proxy" class="size-8 shrink-0 object-contain" />
-            <h1 class="text-[0.9rem] font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0">Codex Proxy</h1>
+            <img src="/icon.png" alt="OpenCodeX-Router" class="size-8 shrink-0 object-contain" />
+            <h1 class="text-[0.9rem] font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0">OpenCodeX-Router</h1>
           </div> : <div class="flex items-center gap-2 lg:hidden">
             {onOpenSidebar && <button onClick={onOpenSidebar} class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-text-dim dark:hover:bg-border-dark" aria-label={t("openSidebar")}>
               <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                 <path d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>}
-            <img src="/icon.png" alt="Codex Proxy" class="size-8 shrink-0 object-contain" />
-            <span class="text-sm font-bold tracking-tight">Codex Proxy</span>
+            <img src="/icon.png" alt="OpenCodeX-Router" class="size-8 shrink-0 object-contain" />
+            <span class="text-sm font-bold tracking-tight">OpenCodeX-Router</span>
           </div>}
           {/* Actions */}
           <div class="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">

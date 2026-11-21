@@ -375,14 +375,25 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   const poolSummary = accountPool.getPoolSummary();
   const displayHost = (host === "0.0.0.0" || host === "::") ? "localhost" : host;
 
+  // Box width in characters between the two border glyphs. Rows pad to it so a longer
+  // host/port cannot push the right border out of alignment.
+  const bannerWidth = 42;
+  const bannerBorder = (left: string, right: string) => `${left}${"═".repeat(bannerWidth)}${right}`;
+  const bannerCenter = (text: string) => {
+    const pad = Math.max(0, bannerWidth - text.length);
+    const before = Math.floor(pad / 2);
+    return `║${" ".repeat(before)}${text}${" ".repeat(pad - before)}║`;
+  };
+  const bannerRow = (text: string) => `║  ${text.padEnd(bannerWidth - 2)}║`;
+
   console.log(`
-╔══════════════════════════════════════════╗
-║           Codex Proxy Server             ║
-╠══════════════════════════════════════════╣
-║  Status: ${accountPool.isAuthenticated() ? "Authenticated ✓" : "Not logged in  "}             ║
-║  Listen: http://${displayHost}:${port}              ║
-║  API:    http://${displayHost}:${port}/v1            ║
-╚══════════════════════════════════════════╝
+${bannerBorder("╔", "╗")}
+${bannerCenter("OpenCodeX-Router")}
+${bannerBorder("╠", "╣")}
+${bannerRow(`Status: ${accountPool.isAuthenticated() ? "Authenticated ✓" : "Not logged in"}`)}
+${bannerRow(`Listen: http://${displayHost}:${port}`)}
+${bannerRow(`API:    http://${displayHost}:${port}/v1`)}
+${bannerBorder("╚", "╝")}
 `);
 
   if (accountPool.isAuthenticated()) {

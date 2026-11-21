@@ -25,7 +25,7 @@ function NavIcon({ name }: { name: IconName }) {
 
 function BrandMark() {
   return (
-    <img src="/icon.png" alt="Codex Proxy" class="size-9 shrink-0 object-contain" />
+    <img src="/icon.png" alt="OpenCodeX-Router" class="size-9 shrink-0 object-contain" />
   );
 }
 
@@ -72,7 +72,7 @@ function SidebarPanel({ activeHash, uptimeSeconds, onClose }: { activeHash: stri
       <div class="flex h-20 shrink-0 items-center gap-3 border-b border-gray-100 px-7 dark:border-border-dark">
         <BrandMark />
         <div>
-          <div class="text-[1.05rem] font-bold tracking-tight text-slate-800 dark:text-text-main">Codex Proxy</div>
+          <div class="text-[1.05rem] font-bold tracking-tight text-slate-800 dark:text-text-main">OpenCodeX-Router</div>
           <div class="mt-0.5 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-slate-400 dark:text-text-dim">Dashboard</div>
         </div>
         {onClose && (

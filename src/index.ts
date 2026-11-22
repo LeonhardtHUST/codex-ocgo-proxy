@@ -79,6 +79,8 @@ import { startOllamaBridge, stopOllamaBridge } from "./ollama/server.js";
 import { createOfficialAgentRoutes } from "./routes/official-agent.js";
 import { installUncaughtErrorHandlers } from "./logs/error-log.js";
 import { awaitServerListening } from "./utils/await-listening.js";
+import { getDataDir } from "./paths.js";
+import { InstanceLockedError, acquireInstanceLock, type InstanceLockHandle } from "./utils/instance-lock.js";
 
 export interface ServerHandle {
   close: () => Promise<void>;
@@ -88,6 +90,8 @@ export interface ServerHandle {
 export interface StartOptions {
   host?: string;
   port?: number;
+  /** Who is starting the backend; recorded in the instance lock for diagnostics. */
+  entrypoint?: "cli" | "desktop";
 }
 
 function urlHostForLocalRequest(host: string): string {
@@ -113,6 +117,14 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   console.log("[Init] Loading configuration...");
   const config = loadConfig();
   const fingerprint = loadFingerprint();
+
+  // One backend per data directory. CLI and the desktop shell share `data/` (two SQLite
+  // databases, scheduler state, several caches), so a second starter must fail loudly here
+  // instead of silently writing the same files as the first one.
+  const instanceLock: InstanceLockHandle = acquireInstanceLock({
+    dataDir: getDataDir(),
+    kind: options?.entrypoint === "desktop" ? "desktop" : "cli",
+  });
 
   // Load static model catalog (before transport/auth init)
   loadStaticModels();
@@ -489,10 +501,22 @@ ${bannerBorder("╚", "╝")}
     });
   };
 
+  // Record the port so the "already running" message can point at the live instance.
+  instanceLock.update({ port: actualPort });
+
+  // Crash paths cannot run this; a stale lock is reclaimed by liveness on the next start.
+  process.once("exit", () => instanceLock.release());
+
   // Register close handler so self-update can attempt graceful shutdown before restart
   setCloseHandler(close);
 
-  return { close, port: actualPort };
+  return {
+    close: async () => {
+      await close();
+      instanceLock.release();
+    },
+    port: actualPort,
+  };
 }
 
 // ── CLI entry point ──────────────────────────────────────────────────
@@ -509,6 +533,18 @@ async function main() {
       break;
     } catch (err) {
       const code = (err as NodeJS.ErrnoException).code;
+      // A second backend on the same data directory is not a transient failure: retrying
+      // would just collide again, and running alongside corrupts shared state.
+      if (err instanceof InstanceLockedError) {
+        const port = err.holder.port ? `, port ${err.holder.port}` : "";
+        console.error(
+          `[Init] This data directory is already served by a ${err.holder.kind} instance ` +
+            `(pid ${err.holder.pid}${port}).`,
+        );
+        console.error(`[Init] Lock file: ${err.file}`);
+        console.error("[Init] Stop that instance first, or run this one against a different data directory.");
+        process.exit(3);
+      }
       if (code === "EADDRINUSE" && attempt < MAX_RETRIES) {
         console.warn(`[Init] Port in use, retrying in ${RETRY_DELAY_MS}ms (attempt ${attempt}/${MAX_RETRIES})...`);
         await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));

@@ -14,6 +14,23 @@ OpenCode 凭据不参与 Codex 账号轮换。
 
 三种形态的协议选择、错误分类与事件归一化是同一套（契约测试锁定），差别只在请求执行层。
 
+## 单实例：一个数据目录只有一个后端
+
+CLI 与桌面版共用同一个 `data/`（两个 SQLite、调度器状态、若干缓存），所以**同一个数据目录只允许一个后端**。
+后启动者直接失败，不会与已在运行的实例并行：
+
+```text
+[Init] This data directory is already served by a cli instance (pid 56100, port 18080).
+[Init] Lock file: D:\...\data\instance.lock
+[Init] Stop that instance first, or run this one against a different data directory.
+```
+
+- 退出码 **3**（锁冲突）与退出码 **1**（端口重试 10 次仍失败）是两回事，别混着查
+- 桌面版遇到锁冲突会弹窗说明占用者然后退出，**不会**退到随机端口继续跑
+- 锁文件记录 `pid` / `kind`（cli 或 desktop）/ `startedAt` / `host` / `port`
+- 进程崩溃留下的锁按 **pid 存活探测**回收，不需要等超时，也不需要手工删文件
+- 只有数据目录相同才会互斥：不同工作目录、不同安装位置各自独立
+
 ## 启用
 
 1. 在 Dashboard 的 **OpenCode** 页面添加凭据并绑定模型。凭据只存本机，不进 Git。

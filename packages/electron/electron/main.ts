@@ -173,10 +173,25 @@ app.on("ready", async () => {
 
     // 4. Start the proxy server (try configured port first, fall back to random if occupied)
     try {
-      serverHandle = await startServer({});
-    } catch {
+      serverHandle = await startServer({ entrypoint: "desktop" });
+    } catch (error) {
+      // A lock conflict is not a port problem: another backend already owns this data
+      // directory (CLI or a second desktop window). Running alongside would corrupt the
+      // shared SQLite files, so report the holder and stop instead of retrying.
+      if ((error as { code?: string })?.code === "INSTANCE_LOCKED") {
+        const holder = (error as { holder?: { kind?: string; pid?: number; port?: number } }).holder;
+        const who = `${holder?.kind ?? "another"} instance (pid ${holder?.pid ?? "?"}${holder?.port ? `, port ${holder.port}` : ""})`;
+        dialog.showErrorBox(
+          "OpenCodeX-Router is already running",
+          `This data directory is already served by a ${who}.\n\n` +
+            "Stop that instance first — two backends sharing one data directory would corrupt " +
+            "its databases and schedulers.",
+        );
+        app.quit();
+        return;
+      }
       console.warn("[Electron] Default port in use, using random port");
-      serverHandle = await startServer({ port: 0 });
+      serverHandle = await startServer({ port: 0, entrypoint: "desktop" });
     }
     console.log(`[Electron] Server started on port ${serverHandle.port}`);
 

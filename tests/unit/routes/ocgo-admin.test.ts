@@ -12,7 +12,7 @@ import { createOCGoAdminRoutes } from "@src/routes/admin/ocgo.js";
 
 vi.mock("@src/config.js", () => ({ getConfig: () => ({ session: { ttl_minutes: 5 } }) }));
 
-const path = "/admin/ocgo/keys";
+const path = "/admin/opencode/keys";
 const input = { name: "Go test", apiKey: "fake-ocgo-primary-key", models: ["mock-model"], quotaGroup: "confirmed-owner" };
 const master = { Authorization: "Bearer fake-app-master" };
 
@@ -81,7 +81,7 @@ describe("OCGo administrator endpoints", () => {
     expect(list.headers.get("Cache-Control")).toBe("no-store");
     const text = await list.text();
     expect(text).not.toContain(input.apiKey);
-    expect(JSON.parse(text)).toMatchObject({ enabled: false, officialQuota: null, credentials: [{ id, name: "Renamed", enabled: false, quotaGroup: "confirmed-owner" }] });
+    expect(JSON.parse(text)).toMatchObject({ enabled: true, officialQuota: null, credentials: [{ id, name: "Renamed", enabled: false, quotaGroup: "confirmed-owner" }] });
     const updated = await request("PATCH", `/${id}`, { apiKey: "fake-new-ocgo-secret", enabled: true });
     expect(updated.status).toBe(200);
     expect(await updated.json()).toEqual({ id });
@@ -102,7 +102,7 @@ describe("OCGo administrator endpoints", () => {
   it("verifies only the selected stored Key through one real loopback request", async () => {
     const first = await add();
     const second = await add({ ...input, apiKey: "fake-ocgo-other-key" });
-    expect((await request("POST", `/${second}/verify`, { model: "mock-model" })).status).toBe(503);
+    // The `enabled` gate is retired, so an unreachable upstream now reports 502 instead\n    // of a misleading "OCGo is disabled" 503.\n    expect((await request("POST", `/${second}/verify`, { model: "mock-model" })).status).toBe(502);
     const seen: string[] = [];
     let deny = false;
     server = createServer((req, res) => {

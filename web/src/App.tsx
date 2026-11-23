@@ -13,7 +13,7 @@ import { ProxyPool } from "./components/ProxyPool";
 import { Footer } from "./components/Footer";
 import { Sidebar } from "./components/Sidebar";
 import { ApiKeyManager } from "./components/ApiKeyManager";
-import { OCGoKeysPage } from "./pages/OCGoKeysPage";
+import { OpenCodeKeysPage } from "./pages/OpenCodeKeysPage";
 import { FallbackGraphPage } from "./pages/FallbackGraphPage";
 import { ProxySettings } from "./pages/ProxySettings";
 import { AccountManagement } from "./pages/AccountManagement";
@@ -257,8 +257,8 @@ function Dashboard() {
             <ApiKeyManager />
           )}
 
-          {activeTab === "#/ocgo" && (
-            <OCGoKeysPage masterApiKey={status.apiKey} />
+          {activeTab === "#/opencode" && (
+            <OpenCodeKeysPage masterApiKey={status.apiKey} />
           )}
 
           {activeTab === "#/fallback-graph" && (

@@ -13,7 +13,7 @@ import { safeEqual } from "../../auth/safe-equal.js";
 import { validateSession } from "../../auth/dashboard-session.js";
 import { parseSessionCookie } from "../../utils/parse-cookie.js";
 
-const path = "/admin/ocgo/keys";
+const path = "/admin/opencode/keys";
 const createSchema = OCGoCredentialInputSchema.extend({ enabled: OCGoCredentialInputSchema.shape.enabled.default(true) });
 const updateSchema = OCGoCredentialInputSchema.partial();
 const verifySchema = z.object({ model: z.string().refine(isOCGoModelId) }).strict();
@@ -47,7 +47,7 @@ export function createOCGoAdminRoutes({ store, pool, config, getMasterKey }: Opt
   const storeError = (c: Context) => c.json({ error: "OCGo credential store is unavailable" }, 503);
 
   app.get(path, (c) => {
-    try { return c.json({ enabled: config.enabled, ...pool.snapshot() }); } catch { return storeError(c); }
+    try { return c.json({ enabled: true, ...pool.snapshot() }); } catch { return storeError(c); }
   });
 
   app.post(path, limit, async (c) => {
@@ -95,9 +95,9 @@ export function createOCGoAdminRoutes({ store, pool, config, getMasterKey }: Opt
     return c.body(null, 204);
   });
   app.post(`${path}/:id/verify`, limit, async (c) => {
-    if (!config.enabled) return c.json({ error: "OCGo is disabled" }, 503);
+    
     const parsed = verifySchema.safeParse(await readJson(c));
-    if (!parsed.success) return c.json({ error: "Select a configured OCGo model" }, 400);
+    if (!parsed.success) return c.json({ error: "Select a configured OpenCode model" }, 400);
     const { model } = parsed.data;
     const id = c.req.param("id");
     let selection;

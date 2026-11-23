@@ -94,7 +94,7 @@ ocgo:
         body: body ? JSON.stringify(body) : undefined,
       });
     }
-    const path = "/admin/ocgo/keys";
+    const path = "/admin/opencode/keys";
     const model = "ocgo:restart-fixture";
     let request = await boot(true);
     const added = await request(path, { name: "Restart fixture", apiKey: "fake-go-restart", models: ["restart-fixture"] });
@@ -113,12 +113,13 @@ ocgo:
     expect(await go.text()).toContain("response.completed");
     expect(calls).toEqual([{ url: "/v1/responses", auth: "Bearer fake-go-restart" }]);
 
+    // `ocgo.enabled` is retired: a stale false is ignored, so the namespace stays registered
+    // and the credentials stay usable instead of the prefix being released.
     request = await boot(false);
-    expect(await (await request(path)).json()).toMatchObject({ enabled: false, credentials: [{ id }] });
-    expect((await request(`${path}/${id}/verify`, { model: "restart-fixture" })).status).toBe(503);
-    const disabled = await request("/v1/responses", { model, input: "hello" });
-    expect(disabled.status).toBe(404);
-    expect(await disabled.json()).toMatchObject({ error: { code: "model_not_found" } });
+    expect(await (await request(path)).json()).toMatchObject({ enabled: true, credentials: [{ id }] });
+    const stillServed = await request("/v1/responses", { model, input: "hello" });
+    expect(stillServed.status).not.toBe(404);
+    expect(await stillServed.json()).not.toMatchObject({ error: { code: "model_not_found" } });
     const legacy = await request("/v1/responses", { model: "custom-restart-fixture", input: "hello", stream: true });
     expect(legacy.status).toBe(200);
     expect(await legacy.text()).toContain("response.completed");

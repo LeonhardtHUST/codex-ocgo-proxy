@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { JSX } from "preact";
 import { useI18n } from "../../../shared/i18n/context";
 
-const path = "/admin/ocgo/keys";
+const path = "/admin/opencode/keys";
 const button = "rounded-lg border border-gray-200 dark:border-border-dark px-3 py-1.5 text-sm hover:bg-slate-100 dark:hover:bg-bg-dark disabled:opacity-50";
 const field = "w-full rounded-lg border border-gray-200 dark:border-border-dark bg-white dark:bg-bg-dark px-3 py-2";
 
@@ -25,7 +25,7 @@ interface Snapshot {
   credentials: Credential[];
 }
 
-export function OCGoKeysPage({ masterApiKey }: { masterApiKey?: string }) {
+export function OpenCodeKeysPage({ masterApiKey }: { masterApiKey?: string }) {
   const { lang, t } = useI18n();
   const zh = lang === "zh";
   const label = (english: string, chinese: string) => zh ? chinese : english;
@@ -110,15 +110,15 @@ export function OCGoKeysPage({ masterApiKey }: { masterApiKey?: string }) {
   return <section class="space-y-4 text-slate-800 dark:text-text-main">
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h1 class="text-lg font-semibold">OCGo</h1>
-        <p class="text-sm text-slate-500 dark:text-text-dim">{label("Manage OpenCode Go credentials for HTTP Responses. Use models as ocgo:<model>.", "管理 HTTP Responses 使用的 OpenCode Go 凭据。请求模型时使用 ocgo:<模型>。")}</p>
+        <h1 class="text-lg font-semibold">OpenCode</h1>
+        <p class="text-sm text-slate-500 dark:text-text-dim">{label("Manage OpenCode Go credentials for HTTP Responses. Request models as opencode-go:<model> (the legacy ocgo: prefix still works).", "管理 HTTP Responses 使用的 OpenCode Go 凭据。请求模型时使用 opencode-go:<模型>（旧的 ocgo: 前缀仍可用）。")}</p>
       </div>
       <div class="flex gap-2">
         <button type="button" class={button} disabled={busy || masterApiKey === "Loading..."} onClick={() => void run(async () => {})}>{label("Refresh", "刷新")}</button>
         <button type="button" class={button} disabled={busy || !snapshot} onClick={() => { setConfirm(null); setEditing("new"); }}>{label("Add Go Key", "新增 Go Key")}</button>
       </div>
     </div>
-    {error && <p role="alert" class="text-sm text-red-600 dark:text-red-400">{label("OCGo operation failed. Check the administrator session and key configuration.", "OCGo 操作失败，请检查管理员会话和凭据配置。")} {error !== "load" && error}</p>}
+    {error && <p role="alert" class="text-sm text-red-600 dark:text-red-400">{label("OpenCode operation failed. Check the administrator session and key configuration.", "OpenCode 操作失败，请检查管理员会话和凭据配置。")} {error !== "load" && error}</p>}
     {notice && <p role="status" class="text-sm">{notice}</p>}
     {requests && <p class="text-sm text-slate-500 dark:text-text-dim">
       {label("Client requests", "客户端请求")}: {requests.started} · {label("Succeeded", "成功")}: {requests.succeeded} · {label("Failed", "失败")}: {requests.failed} · {label("Cancelled", "取消")}: {requests.cancelled}. {label("Official quota: unknown. Local counters reset on restart.", "官方配额未知。本地计数在重启后清零。")}
@@ -145,14 +145,14 @@ export function OCGoKeysPage({ masterApiKey }: { masterApiKey?: string }) {
       {confirm.action === "verify" && <label class="block text-sm">{label("Verification model", "验证模型")}<select name="model" class={field} disabled={busy} required>{confirm.entry.models.filter((model) => !confirm.entry.deniedModels.includes(model)).map((model) => <option key={model} value={model}>{model}</option>)}</select></label>}
       <div class="flex gap-2"><button class={button} disabled={busy} type="submit">{label("Confirm", "确认")}</button><button class={button} disabled={busy} type="button" onClick={() => setConfirm(null)}>{t("cancel")}</button></div>
     </form>}
-    {snapshot?.credentials.length === 0 && <p class="text-sm">{label("No OCGo credentials added.", "尚未添加 OCGo 凭据。")}</p>}
+    {snapshot?.credentials.length === 0 && <p class="text-sm">{label("No OpenCode credentials added.", "尚未添加 OpenCode 凭据。")}</p>}
     {snapshot?.credentials.map((key) => {
       const attempts = key.upstreamAttempts;
       const cooling = (key.cooldownUntil ?? 0) > Date.now();
       const status = !key.enabled ? label("Disabled", "已禁用") : key.invalid ? label("Invalid", "已失效") : cooling ? label("Cooling down", "冷却中") : key.busy ? label("Busy", "使用中") : label("Enabled", "已启用");
       return <article key={key.id} class="space-y-2 rounded-lg border border-gray-200 dark:border-border-dark bg-white dark:bg-card-dark p-4">
         <div class="flex flex-wrap items-center justify-between gap-2"><h2 class="font-semibold break-all">{key.name}</h2><span class="text-xs">{status} · <code>{key.id.slice(0, 8)}</code></span></div>
-        <p class="text-sm break-words">{key.models.map((model) => `ocgo:${model}`).join(", ")}</p>
+        <p class="text-sm break-words">{key.models.map((model) => `opencode:${model}`).join(", ")}</p>
         {!!key.deniedModels.length && <p class="text-sm break-words">{label("Models denied", "无模型权限")}: {key.deniedModels.join(", ")}</p>}
         <p class="text-xs text-slate-500 dark:text-text-dim">{label("Quota group", "额度组")}: {key.quotaGroup ?? unknown} · {label("Upstream attempts", "上游尝试")}: {attempts.started} · {label("Succeeded", "成功")}: {attempts.succeeded} · {label("Failed", "失败")}: {attempts.failed} · {label("Cancelled", "取消")}: {attempts.cancelled}</p>
         <p class="text-xs text-slate-500 dark:text-text-dim">{label("Input tokens", "输入 token")}: {tokenText(attempts.inputTokens)} · {label("Output tokens", "输出 token")}: {tokenText(attempts.outputTokens)} · {label("Cached input", "缓存输入")}: {tokenText(attempts.cachedTokens)}</p>

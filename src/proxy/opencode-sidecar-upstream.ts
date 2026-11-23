@@ -1,6 +1,7 @@
 import { Agent, fetch as directFetch } from "undici";
 import type { CodexResponsesRequest, CodexSSEEvent } from "./codex-types.js";
 import { parseSSEStream, sseSnippet } from "./codex-sse.js";
+import { normalizeReasoningEffort } from "../translation/reasoning-effort.js";
 import type { UpstreamAdapter } from "./upstream-adapter.js";
 import { isOpenCodeKey, isOpenCodeModelId, opencodeResponsesUrl, stripOpenCodeModelPrefix } from "../opencode-legacy-config.js";
 
@@ -101,7 +102,10 @@ export class OpenCodeUpstream implements UpstreamAdapter {
       tool_choice: req.tool_choice,
       parallel_tool_calls: req.parallel_tool_calls,
       text: req.text,
-      reasoning: req.reasoning,
+      // opencode rejects efforts above `xhigh`; degrade instead of forwarding a 400 trigger.
+      reasoning: req.reasoning
+        ? { ...req.reasoning, effort: normalizeReasoningEffort(req.reasoning.effort) }
+        : undefined,
     };
     const timeout = AbortSignal.timeout(this.#timeoutMs);
     const closeStream = new AbortController();

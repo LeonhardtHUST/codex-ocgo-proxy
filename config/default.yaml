@@ -4,21 +4,16 @@ api:
 client:
   profile: codex_cli
   originator: codex_cli_rs
-  app_version: 26.1007.41230
-  build_number: "20324"
+  app_version: 26.1117.41037
+  build_number: "29803"
   platform: darwin
   arch: arm64
   chromium_version: "146"
-
 model:
   default: gpt-6.1-sol
-  # Codex host model for POST /v1/images/generations. The client-facing
-  # gpt-image-2 identifier only means "generate an image" — it is never
-  # sent upstream as the chat model itself.
   image_host_model: gpt-5.5
   default_reasoning_effort: null
   default_service_tier: null
-  # Optional forced service tier per OAuth model, overriding client preferences.
   service_tier_overrides: {}
   default_tools: []
   aliases: {}
@@ -26,17 +21,8 @@ model:
   inject_desktop_context: false
   suppress_desktop_directives: false
   allow_client_system_prompt_strategy: false
-  # How user-supplied system prompt is delivered to the Codex backend:
-  #   instructions     - default; user system goes into the top-level `instructions` field
-  #   developer_inline - user system is moved to input[0] as a developer-role message
-  #   system_inline    - user system is moved to input[0] as a system-role message
-  # The two `_inline` modes can bypass Codex backend's built-in base prompt prior
-  # in cases where the `instructions` field is overridden by server-injected context.
   system_prompt_strategy: instructions
-  # Sync the official Codex model catalog from the openai/codex repository
-  # (no credentials). Failures are silent and fall back to backend fetching.
   official_catalog_sync: true
-  # Re-fetch the cached official catalog at most this often (hours, min 1).
   official_catalog_refresh_hours: 6
 auth:
   jwt_token: null
@@ -44,7 +30,6 @@ auth:
   refresh_enabled: true
   refresh_margin_seconds: 300
   rotation_strategy: least_used
-  # Hard account restrictions keyed by effective service_tier; see README_EN.md.
   service_tier_routing: {}
   rate_limit_backoff_seconds: 60
   oauth_client_id: app_EMoamEEZ73f0CkXaXp7hrann
@@ -71,11 +56,6 @@ tls:
   transport: native
   proxy_url: null
   force_http11: false
-  # Upstream streaming no-progress watchdog (ms). Surfaces half-open
-  # connections as premature stream closes instead of hanging forever.
-  # Covers both phases: waiting for response headers (pre-header hang) and
-  # gaps between body bytes (clock starts at the first body byte, so
-  # pre-first-token thinking pauses are never cut). 0 disables.
   stream_idle_timeout_ms: 120000
 quota:
   refresh_interval_minutes: 0
@@ -88,30 +68,17 @@ quota:
       - 80
       - 90
   skip_exhausted: true
-# Refuse to resend a conversation the upstream safety gate already rejected.
-# Such a rejection is a function of the content, so a retry cannot succeed: it
-# only reports another violation, which is what escalates to an account ban.
-# Disabled by default. See src/proxy/policy-rejection.ts.
 policy_guard:
   enabled: false
-  # Structured error.code values identifying a policy rejection.
   error_codes:
     - cyber_policy
     - session_blocked_by_cyber_policy
-  # Substring fallbacks for deployments that strip the code. Matched against
-  # upstream error output only — never against request content.
   message_patterns:
     - possible cybersecurity risk
     - high-risk cyber activity
     - cyber-security policy
     - 网络安全策略屏蔽
-  # Optional narrowing filter. When non-empty, only these HTTP statuses can be
-  # treated as a policy rejection; empty means no restriction. A status never
-  # triggers the guard on its own (403 also means ban, 429 also means rate
-  # limit), so this can only make the guard stricter. Ignored for stream
-  # terminal frames, which carry no HTTP status.
   status_codes: []
-  # Quarantine lifetime in seconds; edited history releases it sooner.
   ttl_seconds: 3600
 update:
   auto_update: true

@@ -42,8 +42,10 @@ function safeStringify(value: unknown): string {
   }
 }
 
-function isReasoningEffort(value: unknown): value is "low" | "medium" | "high" | "xhigh" {
-  return value === "low" || value === "medium" || value === "high" || value === "xhigh";
+const REASONING_EFFORTS = ["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"] as const;
+
+function isReasoningEffort(value: unknown): value is (typeof REASONING_EFFORTS)[number] {
+  return typeof value === "string" && (REASONING_EFFORTS as readonly string[]).includes(value);
 }
 
 function isChatRole(value: unknown): value is "system" | "developer" | "user" | "assistant" | "tool" | "function" {
@@ -357,7 +359,7 @@ const ChatCompletionRequestObjectSchema = z.object({
   stop: z.union([z.string(), z.array(z.string())]).optional(),
   user: z.string().optional(),
   // Codex-specific extensions
-  reasoning_effort: z.enum(["low", "medium", "high", "xhigh"]).optional(),
+  reasoning_effort: z.enum(["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"]).optional(),
   service_tier: ServiceTierSchema.nullable().optional(),
   // New tool format. In addition to function tools, accept hosted web search
   // tools so OpenAI-compatible clients can ask Codex to search natively.

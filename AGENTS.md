@@ -20,6 +20,7 @@
 - **Windows 必须同时产出 setup 与 portable**：`win.target` 同时列 `nsis` 与 `portable`，并给 `nsis.artifactName` / `portable.artifactName` 分别命名，否则两者同名互相覆盖。CI 用 `electron-builder.ocx.yml`（输出 `release-ocx/`），本地用 `electron-builder.yml`（输出 `release/`）。
 - **本地没有符号链接权限时**：`winCodeSign` 内含 macOS 符号链接，非管理员解包会失败（`Cannot create symbolic link`）。用 `--config.win.signAndEditExecutable=false` 跳过，或开启 Windows 开发者模式；CI 的 Windows runner 是管理员，可正常产出 nsis/portable。
 - **首次打包需要下载 electron 与 nsis 工具包**：本机直连 GitHub 会超时，需设置 `HTTPS_PROXY=http://127.0.0.1:7897`。
+- **改 `.github/workflows/**` 后先跑 `node scripts/check-workflows.cjs`**：YAML 缩进错误会让整个工作流失效，GitHub 只返回 0 秒失败且无日志，容易误判成「标签推送没触发」。
 - **发布只走 `ocx-v*` 标签**，推送即触发 `.github/workflows/ocx-release.yml`（校验 → 构建 → 冒烟 → draft → 校验资产与 SHA256 → 转 prerelease），永不覆盖既有标签或上游仓库。
 
 ## Gemini / Antigravity Schema 与日志

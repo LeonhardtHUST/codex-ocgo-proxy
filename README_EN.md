@@ -60,7 +60,7 @@ Open the app, log in with your ChatGPT account. Dashboard at `http://localhost:8
 
 ### No-Node Lite (Browser/Server, for advanced users)
 
-If you already have Node.js installed, or need to run Codex Proxy on a server, WSL, or another machine without a desktop, use the optional No-Node Lite distribution. It uses the same backend and dashboard as the Electron app but does not bundle Node.js, so the archive is smaller and the runtime remains under your control. The Electron installers above are unchanged. Download `codex-proxy-<version>-no-node-lite-all-platforms.zip`, extract it, and run the platform entry point from the package root:
+If you already have Node.js installed, or need to run OpenCodeX-Router on a server, WSL, or another machine without a desktop, use the optional No-Node Lite distribution. It uses the same backend and dashboard as the Electron app but does not bundle Node.js, so the archive is smaller and the runtime remains under your control. The Electron installers above are unchanged. Download `codex-proxy-<version>-no-node-lite-all-platforms.zip`, extract it, and run the platform entry point from the package root:
 
 ```bash
 # Windows: double-click codex-proxy.exe; codex-proxy.cmd is always included as a script fallback
@@ -207,7 +207,7 @@ If you see streaming AI text, the setup is working. If you get 401, double-check
 ## 🏗️ Architecture
 
 ```
-                                Codex Proxy
+                                OpenCodeX-Router
 ┌──────────────────────────────────────────────────────────┐
 │                                                          │
 │  Client (Cursor / Claude Code / Continue / SDK / ...)    │
@@ -321,7 +321,7 @@ claude
 `~/.codex/config.toml`:
 ```toml
 [model_providers.proxy_codex]
-name = "Codex Proxy"
+name = "OpenCodeX-Router"
 base_url = "http://localhost:8080/v1"
 wire_api = "responses"
 
@@ -375,7 +375,7 @@ model:
 
 The left side is the model name used by the client; the right side is the real upstream model. The target can be a Codex model ID, a provider-prefixed model such as `openai:gpt-4o` / `anthropic:claude-sonnet-4-5` / `gemini:gemini-2.5-pro`, or a model already bound to a custom provider via `model_routing` such as `deepseek-chat`. Aliases appear in `/v1/models`; direct provider requests rewrite the outgoing `model` to the mapped target.
 
-> 💡 **Troubleshooting (Windows)**: If Claude Desktop shows `ERR_CONNECTION_REFUSED` when using `127.0.0.1` (and `must use https` when using `localhost`), it means Node.js is only binding to IPv6 by default. Go to the Codex Proxy dashboard settings, change **Host** to `127.0.0.1`, or add `server: { host: "127.0.0.1" }` to `data/local.yaml` and restart the proxy.
+> 💡 **Troubleshooting (Windows)**: If Claude Desktop shows `ERR_CONNECTION_REFUSED` when using `127.0.0.1` (and `must use https` when using `localhost`), it means Node.js is only binding to IPv6 by default. Go to the OpenCodeX-Router dashboard settings, change **Host** to `127.0.0.1`, or add `server: { host: "127.0.0.1" }` to `data/local.yaml` and restart the proxy.
 >
 > 💡 **LAN Usage Tip**: Claude Desktop strictly validates the endpoint and **only allows** `https://` or exactly `http://127.0.0.1`. If your proxy is on another machine in the LAN (e.g. `192.168.x.x`), you cannot use it directly via HTTP. Workarounds:
 > 1. **SSH Tunnel (Easiest)**: Run `ssh -L 8080:127.0.0.1:8080 user@192.168.x.x` on your client machine, then use `http://127.0.0.1:8080` in Claude.
@@ -388,7 +388,7 @@ The official client shares configuration with the CLI. Restart the app after edi
 `~/.codex/config.toml`:
 ```toml
 [model_providers.proxy_codex]
-name = "Codex Proxy"
+name = "OpenCodeX-Router"
 base_url = "http://localhost:8080/v1"
 wire_api = "responses"
 
@@ -466,7 +466,7 @@ aider --openai-api-base http://localhost:8080/v1 \
 
 ### Pi Coding Agent (pi)
 
-[Pi Coding Agent](https://github.com/earendil-works/pi) (`@earendil-works/pi-coding-agent`) can be configured via `~/.pi/agent/models.json` to connect to Codex Proxy.
+[Pi Coding Agent](https://github.com/earendil-works/pi) (`@earendil-works/pi-coding-agent`) can be configured via `~/.pi/agent/models.json` to connect to OpenCodeX-Router.
 
 #### Option 1: OpenAI Completions Protocol (Recommended)
 
@@ -559,7 +559,7 @@ Enable it in Dashboard → Settings → **Ollama Bridge**, then use the default 
 | Setting | Value |
 |---------|-------|
 | Base URL | `http://localhost:11434` |
-| API Key | Not required; the bridge uses the Codex Proxy key internally |
+| API Key | Not required; the bridge uses the OpenCodeX-Router key internally |
 | Model | `gpt-5.6-sol` (or any model ID) |
 
 ```bash
@@ -790,7 +790,7 @@ For Docker deployments that need host access to `11434`:
 2. Uncomment the `127.0.0.1:${OLLAMA_BRIDGE_PORT:-11434}:11434` port mapping in `docker-compose.yml`.
 3. Keep the host binding on `127.0.0.1` unless you intentionally want to expose an unauthenticated Ollama API.
 
-Browser CORS access is limited to loopback origins such as `localhost`, `127.x.x.x`, and `::1`; non-local web origins are not allowed to read bridge responses. The bridge injects the configured Codex Proxy API key for `/v1/*` passthrough requests, so exposing it beyond localhost effectively grants unauthenticated access to the main proxy API.
+Browser CORS access is limited to loopback origins such as `localhost`, `127.x.x.x`, and `::1`; non-local web origins are not allowed to read bridge responses. The bridge injects the configured OpenCodeX-Router API key for `/v1/*` passthrough requests, so exposing it beyond localhost effectively grants unauthenticated access to the main proxy API.
 
 ### Listen Address
 
@@ -811,7 +811,7 @@ server:
   # proxy_api_key: null   # no global key; logged-in accounts still have account-level codex-proxy-xxxx keys
 ```
 
-On first startup, if `data/local.yaml` is missing, Codex Proxy creates it with `server.proxy_api_key: pwd`. The active key is shown in the dashboard API Configuration section.
+On first startup, if `data/local.yaml` is missing, OpenCodeX-Router creates it with `server.proxy_api_key: pwd`. The active key is shown in the dashboard API Configuration section.
 
 ### Environment Variable Overrides
 

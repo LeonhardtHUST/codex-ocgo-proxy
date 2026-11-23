@@ -82,7 +82,7 @@ OpenCode 家族（`opencode-go` / `opencode-zen` / `opencode-zen-free`）与 `co
 <summary><h3>方式二：No-Node Lite（浏览器/服务器版，适合高级用户）</h3></summary>
 
 如果你已经安装 Node.js，或者需要在服务器、WSL 等没有桌面环境的机器上运行
-Codex Proxy，可以选择 No-Node Lite。它使用与 Electron 版相同的后端和控制面板，
+OpenCodeX-Router，可以选择 No-Node Lite。它使用与 Electron 版相同的后端和控制面板，
 但不内置 Node.js，因此包更小，也方便你自行管理运行时；上面的 Electron 安装包不受影响。
 正式制品使用 `codex-proxy-<版本>-no-node-lite-all-platforms.zip`，解压后在包根目录运行对应入口：
 
@@ -295,7 +295,7 @@ curl http://localhost:8080/v1/chat/completions \
 <summary><h2>🏗️ 技术架构</h2></summary>
 
 ```
-                                Codex Proxy
+                                OpenCodeX-Router
 ┌──────────────────────────────────────────────────────────┐
 │                                                          │
 │  Client (Cursor / Claude Code / Continue / SDK / ...)    │
@@ -433,7 +433,7 @@ claude
 
 ```toml
 [model_providers.proxy_codex]
-name = "Codex Proxy"
+name = "OpenCodeX-Router"
 base_url = "http://localhost:8080/v1"
 wire_api = "responses"
 
@@ -494,9 +494,9 @@ model:
 
 alias 左边是客户端请求里填写的模型名，右边是真正发给上游的模型名。右侧可以是 Codex 模型 ID、带 provider 前缀的模型（如 `openai:gpt-4o` / `anthropic:claude-sonnet-4-5` / `gemini:gemini-2.5-pro`），也可以是已通过 `model_routing` 绑定到自定义 provider 的模型名（如 `deepseek-chat`）。别名会出现在 `/v1/models`，请求进入直连 provider 时会自动把模型名改写成映射目标。
 
-> 💡 **排查提示 (Windows)**: 如果使用 `127.0.0.1` 时 Claude Desktop 提示 `ERR_CONNECTION_REFUSED`（而使用 `localhost` 提示 URL 格式错误），说明 Node.js 在你的系统上默认只绑定了 IPv6。请进入 Codex Proxy 控制面板的设置页面，将 **Host** 修改为 `127.0.0.1`，或在 `data/local.yaml` 中添加 `server: { host: "127.0.0.1" }` 后重启代理。
+> 💡 **排查提示 (Windows)**: 如果使用 `127.0.0.1` 时 Claude Desktop 提示 `ERR_CONNECTION_REFUSED`（而使用 `localhost` 提示 URL 格式错误），说明 Node.js 在你的系统上默认只绑定了 IPv6。请进入 OpenCodeX-Router 控制面板的设置页面，将 **Host** 修改为 `127.0.0.1`，或在 `data/local.yaml` 中添加 `server: { host: "127.0.0.1" }` 后重启代理。
 >
-> 💡 **局域网使用提示 (LAN)**: Claude Desktop 强制校验 API 地址，**只允许** `https://` 开头或 `http://127.0.0.1`。如果你将 Codex Proxy 部署在局域网另一台机器（如 `192.168.x.x`），直接填入会报错。解决方法：
+> 💡 **局域网使用提示 (LAN)**: Claude Desktop 强制校验 API 地址，**只允许** `https://` 开头或 `http://127.0.0.1`。如果你将 OpenCodeX-Router 部署在局域网另一台机器（如 `192.168.x.x`），直接填入会报错。解决方法：
 >
 > 1. **SSH 隧道 (最简单)**：在客户端机器运行 `ssh -L 8080:127.0.0.1:8080 user@192.168.x.x`，然后在 Claude 里填 `http://127.0.0.1:8080`。
 > 2. **反向代理**：使用 Caddy 或 Nginx 配置局域网 HTTPS 证书。
@@ -512,7 +512,7 @@ alias 左边是客户端请求里填写的模型名，右边是真正发给上�
 
 ```toml
 [model_providers.proxy_codex]
-name = "Codex Proxy"
+name = "OpenCodeX-Router"
 base_url = "http://localhost:8080/v1"
 wire_api = "responses"
 
@@ -637,7 +637,7 @@ aider --model openai/gpt-5.6-sol
 <details>
 <summary><h3>Pi Coding Agent (pi)</h3></summary>
 
-[Pi Coding Agent](https://github.com/earendil-works/pi) (`@earendil-works/pi-coding-agent`) 可通过 `~/.pi/agent/models.json` 配置自定义 Provider 接入 Codex Proxy。
+[Pi Coding Agent](https://github.com/earendil-works/pi) (`@earendil-works/pi-coding-agent`) 可通过 `~/.pi/agent/models.json` 配置自定义 Provider 接入 OpenCodeX-Router。
 
 <details>
 <summary>方式一：OpenAI Completions 协议（推荐）</summary>
@@ -744,7 +744,7 @@ pi --provider codex-proxy --model gpt-5.6-sol
 | 设置项 | 值 |
 |--------|-----|
 | Base URL | `http://localhost:11434` |
-| API Key | 不需要，Bridge 内部会使用 Codex Proxy 的密钥访问主服务 |
+| API Key | 不需要，Bridge 内部会使用 OpenCodeX-Router 的密钥访问主服务 |
 | Model | `gpt-5.6-sol`（或其他模型 ID） |
 
 ```bash
@@ -984,7 +984,7 @@ Docker 部署时，如果希望宿主机访问 `11434`：
 2. 取消 `docker-compose.yml` 中 `127.0.0.1:${OLLAMA_BRIDGE_PORT:-11434}:11434` 端口映射的注释。
 3. 保持宿主机绑定 `127.0.0.1`，除非你明确知道自己要把无鉴权 Ollama API 暴露到网络。
 
-浏览器 CORS 访问仅允许 `localhost`、`127.x.x.x`、`::1` 等 loopback origin；非本机网页来源不能读取桥接响应。Bridge 会为 `/v1/*` 直通请求注入已配置的 Codex Proxy API Key，因此暴露到 localhost 之外时，相当于也把主代理 API 以无鉴权方式暴露出去。
+浏览器 CORS 访问仅允许 `localhost`、`127.x.x.x`、`::1` 等 loopback origin；非本机网页来源不能读取桥接响应。Bridge 会为 `/v1/*` 直通请求注入已配置的 OpenCodeX-Router API Key，因此暴露到 localhost 之外时，相当于也把主代理 API 以无鉴权方式暴露出去。
 
 ### Official Agent Bridge 配置
 

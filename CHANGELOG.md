@@ -38,6 +38,11 @@
 
 ### Changed
 
+- **文档产品名统一**：`README.md` / `README_EN.md` / `API.md` / `API_CN.md` / `DESIGN.md` /
+  `docs/MULTI_AGENT_WORKFLOW.md` / `.github/guides/claude-code-setup.md` 中的产品名统一为 OpenCodeX-Router；
+  上游署名、仓库 URL、`CODEX_PROXY_*` 环境变量、`[model_providers.codex-proxy]` 等兼容标识保持不变。
+  `packages/npm/README.md` 去掉上游包作用域与发布渠道的过时安装说明。
+
 - **发布通道改名**：非官方构建通道由 `ocgo` 改为 `ocx`——tag 前缀 `ocgo-v*` → `ocx-v*`，
   工作流 `ocgo-release.yml` → `ocx-release.yml`，打包配置 `electron-builder.ocgo.yml` → `electron-builder.ocx.yml`，
   `appId` 改为 `com.opencodex.router.unofficial`、产品名 `OpenCodeX-Router (unofficial)`、

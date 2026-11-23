@@ -1,11 +1,3 @@
-# Changelog
-
-本项目的所有重要变更都将记录在此文件中。
-
-格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
-
-> **上游血缘**：本项目是 Codex Proxy 的独立衍生分支，保留上游许可与著作权声明，详见 [CREDITS.md](./CREDITS.md)。产品名、包名、配置段与模型命名空间已按本仓命名重构，不再与上游兼容。
-
 ## [Unreleased]
 
 ### Added
@@ -13,24 +5,33 @@
 - **opencode provider 家族**：`opencode-go` / `opencode-zen` / `opencode-zen-free` 三个逻辑上游与 codex 同级，
   模型命名空间 `opencode:`（显式档位前缀 `opencode-go:` / `opencode-zen:` / `opencode-zen-free:`），
   `ocgo:` 作为兼容别名由 `opencode.legacy_ocgo_prefix` 控制。
+
 - **仓内 Rust 请求路由** `native/ocx-router`：三个入站协议（responses / chat completions / anthropic messages）
   各独立端点，Node 侧管理生命周期；二进制缺失或健康检查失败时显式降级到 TypeScript adapter，并在
   `GET /admin/opencode/status` 标记 `degraded`。
+
 - **模型能力目录**：`GET /v1/opencode/catalog` 与 `/v1/models` 的 opencode 条目带上下文长度、输出上限、
   模态、能力、思考档位、原生协议与定价；字段别名兼容 `context_length` / `max_tokens` / `limit{...}` 等读法。
+
 - **模型 fallback 图**：`GET/PUT /admin/opencode/fallback-graph`、`POST …/validate`，以及面板画布编辑器；
   边带失败条件与权重，受 `maxHops` / `budgetMs` 约束，响应已提交后不再跳转。
+
 - **zen-free 聚合轮换**：`GET/POST /admin/opencode/zen-free`，开启后全部 opencode 凭据参与免费模型轮换，
   按成功情况反馈权重，`FreeUsageLimitError` 走通道级熔断（与付费健康分隔离）。
+
 - **Windows 自启**：registry / startup / task 三模式，`task` + `run_as_admin` 用 `RL HIGHEST`
   免登录弹窗提权；需要管理员时返回 409 + `elevationRequired`，通过 `POST /admin/autostart/elevate`
   走一次 UAC 完成（详见 `docs/AUTOSTART.md`）。
+
 - `CREDITS.md` 与 `THIRD-PARTY-NOTICES.txt`。
+
 - **上游身份 header 完整注入**：`x-opencode-session` 之外补上 `x-opencode-client` 与 `x-opencode-project`；
   注入不再依赖主机名判定——由 adapter 标记的请求即使指向自定义 base URL 也会带上身份头。项目头只在
   配置了 `opencode.project_seed` 时发送，避免用会话级随机值破坏上游的跨会话缓存复用。
+
 - **回退图支持跨 provider 跳转**：节点目标可写 `codex-fallback:<model>`，命中的跳会交给 provider bridge
   走 fallback 上游；未配置 fallback 时该跳明确返回 503，不再被静默忽略。
+
 - **provider 清单与 fallback 行**：`GET /admin/opencode/status` 现在返回完整 provider 清单（含 `codex-official` 与
   `codex-fallback` 的 id、类型、启用状态与优先级）；配置了 fallback 上游后，`/v1/models` 会额外列出
   `codex-fallback:<model>` 行，使「后备供应商」和官方供应商一样可在模型列表里被发现。
@@ -42,27 +43,26 @@
   `appId` 改为 `com.opencodex.router.unofficial`、产品名 `OpenCodeX-Router (unofficial)`、
   可执行名 `opencodex-router-unofficial`，构建标志 `OCGO_BUILD` → `OCX_BUILD`。
   历史 release 仍保留在 `ocgo-v*` 标签下；如需发布新版本，改用 `ocx-v<semver>-beta.<n>`。
+
 - **非官方构建的数据目录隔离**：常规版与非官方版各自迁移自己的历史目录，不会互相合并数据。
+
 - **本机部署文档改写**：`OCGO_LOCAL.md` → `OCX_LOCAL.md`，按当前形态重写（仓内 Rust 路由 / 兼容外部 sidecar /
   纯 TypeScript 三种模式，含 `rust_routing` 字段表与显式降级说明）；配置样例合并为
   `config/ocx.local.example.yaml` 并删掉已失效的 `config/ocgo2api.example.toml`，样例由单测校验与 schema 一致。
+
 - 项目更名为 **OpenCodeX-Router**：根/npm/electron 包名、`GITHUB_REPO`、workflow 的 `github.repository`
   守卫、`publish.owner/repo`、`artifactName`、electron `appId` / `productName` 一并调整；
   此前 fork 上多个 CI 因守卫指向上游而静默跳过。
+
 - **用户数据目录迁移**：包名变更会移动 Electron 的 per-user 目录，首次启动把旧目录
   （`@codex-proxy/electron` 等）一次性复制到新作用域，不删除原目录；复制失败则继续使用旧目录并告警。
-- 文档只保留中文与英文两份；README 重写上游声明与独立分支定位。
 
-### Removed
+- 文档只保留中文与英文两份；README 重写上游声明与独立分支定位。
 
 - 上游作者的个人推广内容（社交徽章、微信赞赏/Telegram 二维码、Star 历史图表、第一人称叙事）与多语言 README/API 文档。
 
-### Changed
-
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
 
 - **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
   与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
@@ -77,28 +77,13 @@
 - **同一数据目录只允许一个后端**：CLI 与桌面版共用 `data/`（两个 SQLite、调度器状态、多个缓存），
   此前可以同时启动两个进程互相覆写。现在后启动者以退出码 `3` 失败并指出占用者的 pid 与端口，
   桌面版遇锁冲突弹窗后退出而不是改随机端口继续跑；崩溃残留的锁按 pid 存活探测自动回收。
+
 - Rust 路由路径此前自写了一份 SSE 解析并与 TypeScript 实现并列；现复用同一批解析器，错误也统一为
   `CodexApiError`，使既有重试与策略分类对 Rust 路径重新生效。协议契约由 `npm run test:contract` 锁定。
 
-
 ## [v2.1.x](https://github.com/icebear0828/codex-proxy/releases?q=2.1) - 2026-09-01 至今
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - 保留 Anthropic `tool_choice.disable_parallel_tool_use` 并在内部请求与 Anthropic 上游之间传递单工具调用限制；OpenAI 的 `parallel_tool_calls` 已可端到端透传。Gemini GenerateContent API 没有等价字段，现对显式 `parallel_tool_calls: false` 请求返回 400，而不是静默丢弃该限制。（#824）
 - 保留 Anthropic 工具上的 `allowed_callers` 限制与 `strict` 校验标记，并在回发 Anthropic 上游时原样带回，不再静默丢失。（#818）
@@ -162,7 +147,6 @@
 - 修复 OpenCode（Console Go，`opencode.ai/zen/go`）上游因缺少 `x-opencode-session` 请求头而拒绝请求的问题（#814）：Codex / Kilo Code 等客户端直连时会携带该头与真实 User-Agent，经代理转发后被丢弃或覆盖。现由代理识别 OpenCode 上游，透传客户端原始 `x-opencode-session` 与 User-Agent；客户端未提供会话头时，以每个对话稳定的标识符自动补上（`src/proxy/opencode-headers.ts`、`src/proxy/codex-responses-upstream.ts`、`src/proxy/responses-upstream.ts`、`src/proxy/openai-upstream.ts`）。
 
 - 修复 `latest-lite` 等 Alpine 镜像在 x86_64 上启动即崩溃（`Error loading shared library ld-linux-x86-64.so.2: No such file or directory`，#805）：镜像发布流水线此前在 glibc runner 上以 musl target 交叉编译 `codex-tls.linux-x64-musl.node`，aws-lc 等 C 依赖仍被链接到 glibc，产出名为 musl 实为 glibc 的二进制，在 Alpine 中无法加载。现改为在 `napi-rs/nodejs-rust:lts-alpine` 容器内原生构建（与 Lite zip / Release 流水线一致），并新增 readelf glibc 依赖断言与**推送到远程仓库前**的本地冒烟门禁测试（镜像自带 Node 下 dlopen addon + 空卷启动 + `/health`）。（`.github/workflows/docker-publish.yml`）
-
 
 - 完善 Token 刷新错误与过载流关闭处理：将 `refresh_token_invalidated` 纳入永久失效错误避免无效轮转；流关闭事件中可重试的 `server_is_overloaded` 不再持久化到错误日志（`src/auth/refresh-scheduler.ts`、`src/logs/stream-close-event.ts`）。
 - 废弃的 `/api/v2/auth/login` 与 `/api/v2/app/version` 端点改为返回 410 响应及迁移提示，便于区分旧客户端探测并避免误记为服务端故障（`src/routes/web.ts`）。
@@ -428,22 +412,7 @@
 
 - Claude Code Setup 卡片：Dashboard 按 Opus/Sonnet/Haiku/自定义 层级一键复制环境变量（推荐模型 gpt-5.4 / gpt-5.3-codex / gpt-5.4-mini）
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - 修复 `/v1/responses` 与 `/v1/responses/compact` 在客户端指定未收录模型时静默回退默认模型、响应 `model` 字段误报为默认模型的问题：与 `/v1/chat/completions` 行为一致，未识别模型返回 `404 model_not_found`；`codex` 哨兵与配置默认模型仍正常回退默认。（`src/routes/responses.ts`、`src/routes/responses-compact.ts`、`src/models/model-store.ts`，关联 issue #660）
 
@@ -1058,22 +1027,7 @@
 
 - Dockerfile 安全加固（非 root 用户运行、HEALTHCHECK 探针）
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - Electron 模式下 `data/local.yaml` 中的 `server.host` 配置不生效——Electron 硬编码 `127.0.0.1` 覆盖了用户配置，现在 `local.yaml` 显式设置的 host 优先于启动参数（#175）
 
@@ -1241,22 +1195,7 @@
 
 - Docker 容器内代理自动检测失败：`detectLocalProxy()` 现在同时探测 `127.0.0.1`（裸机）和 `host.docker.internal`（Docker 容器→宿主机），零配置即生效
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。 (pipeline)
 
 - Prompt 提取括号定位修复：`extractPrompts()` 的 `lastIndexOf("[")` 无限回溯导致匹配到无关 `[`，截取错误代码片段产出乱码；改为 50 字符窗口内搜索
 
@@ -1278,22 +1217,7 @@
 
 - 原生 function_call / tool_calls 支持（所有协议）
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - 格式错误的 chat payload 返回 400 `invalid_json` 错误
 
@@ -1310,22 +1234,7 @@
 
 - 清理无用代码、未使用配置，修复类型违规
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - 启动日志显示配置的 `proxy_api_key` 而非随机哈希
 - 首次 OAuth 登录后 `useStatus` 未刷新
@@ -1341,22 +1250,7 @@
 
 - README 快速开始按平台重组
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - Docker 构建完整修复链（代理配置、BuildKit 冲突、host 网络、源码复制顺序、layer 优化）
 - `.env` 行内注释被误解析为 JWT token
@@ -1384,22 +1278,7 @@
 - 系统字体替换 Google Fonts
 - 架构审计修复（P0-P2 稳定性与可靠性）
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - 移除所有 `any` 类型
 - 修复图标文字闪烁（FOUC）
@@ -1428,22 +1307,7 @@
 - 请求时序 jitter 随机化
 - Dashboard 实时代码示例与配额显示
 
-### Changed
-
-- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
-  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
-
-### Changed
-
-- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
-  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
-  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
-
 ### Fixed
-
-- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
-  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
-  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - curl 请求修复
 

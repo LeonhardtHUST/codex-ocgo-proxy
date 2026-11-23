@@ -832,6 +832,7 @@ server:
 | `tls` | `proxy_url`, `force_http11` | TLS 代理与 HTTP 版本 |
 | `quota` | `refresh_interval_minutes`, `warning_thresholds`, `skip_exhausted` | 用量快照、阈值配置与耗尽账号跳过 |
 | `policy_guard` | `enabled`, `error_codes`, `message_patterns`, `status_codes`, `ttl_seconds` | 上游安全策略熔断：不再重发已被上游安全检测拒绝的对话，账号路径与 API-key/回退上游路径同时生效（默认关闭） |
+| `opencode` | `upstreams.{go,zen,zen_free}`, `cache_header_aggregation`, `legacy_prefix`, `project_seed`, `http_timeout_seconds`, `rust_routing` | OpenCode 家族（go / zen / zen-free）：上游基址与开关、缓存身份聚合、`ocgo:` 兼容前缀、Rust 路由。**没有全局启用开关**，能否服务只取决于是否有凭据 |
 | `session` | `ttl_minutes`, `cleanup_interval_minutes` | Dashboard session 管理 |
 | `ollama` | `enabled`, `host`, `port`, `version`, `disable_vision` | Ollama 兼容桥接 |
 | `official_agent` | `enabled`, `api_key`, `app_server_url`, `auth` | 官方 Codex app-server 桥接，用于复用 Chrome/browser 插件 |

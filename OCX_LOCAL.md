@@ -84,7 +84,7 @@ opencode-zen:<model>          # 强制 zen
 opencode-zen-free:<model>     # 强制免费档（配合聚合轮换）
 ```
 
-`ocgo:` 是 `opencode:` 的兼容别名，由 `opencode.legacy_ocgo_prefix` 控制，默认开启。若已有模型、
+`ocgo:` 是 `opencode:` 的兼容别名，由 `opencode.legacy_prefix` 控制，默认开启。若已有模型、
 别名或 Custom 供应商占用这些前缀，App 会拒绝启用；先迁移冲突名称，或保持关闭。
 
 同一模型 id 在不同上游可能是**不同协议**（例如 `minimax-m3` 在 zen 是 chat completions、在 go 是

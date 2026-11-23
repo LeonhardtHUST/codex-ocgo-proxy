@@ -60,14 +60,24 @@ extraMetadata:
 
 win:
   target:
+    # Both Windows shapes are published for every release: the NSIS setup that an
+    # ordinary user double-clicks, and a single-file portable exe for users who
+    # cannot or will not install anything. Distinct artifactName values keep the two
+    # files from colliding (both default to the same template otherwise).
     - target: nsis
+      arch: [x64]
+    - target: portable
       arch: [x64]
   icon: electron/assets/icon.ico
 
 nsis:
+  artifactName: "OpenCodeX-Router-unofficial-${version}-win-${arch}-setup.${ext}"
   oneClick: false
   allowToChangeInstallationDirectory: true
   perMachine: false
+
+portable:
+  artifactName: "OpenCodeX-Router-unofficial-${version}-win-${arch}-portable.${ext}"
 
 linux:
   target:

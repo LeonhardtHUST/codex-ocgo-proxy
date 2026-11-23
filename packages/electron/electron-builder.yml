@@ -44,9 +44,15 @@ win:
   target:
     - target: nsis
       arch: [x64]
+    - target: portable
+      arch: [x64]
   icon: electron/assets/icon.ico
 
+portable:
+  artifactName: "OpenCodeX-Router-${version}-win-${arch}-portable.${ext}"
+
 nsis:
+  artifactName: "OpenCodeX-Router-${version}-win-${arch}-setup.${ext}"
   oneClick: false
   allowToChangeInstallationDirectory: true
   perMachine: false

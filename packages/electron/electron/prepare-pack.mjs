@@ -7,7 +7,7 @@
  *   node electron/prepare-pack.mjs --clean  # remove copies
  */
 
-import { cpSync, rmSync, existsSync } from "fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync, statSync } from "fs";
 import { resolve } from "path";
 
 const ROOT = resolve(import.meta.dirname, "..", "..", "..");
@@ -56,7 +56,10 @@ if (isClean) {
     recursive: true,
     force: true,
     filter: (src) => {
-      const rel = src.slice(nativeSrc.length);
+      // Normalize separators first: on Windows `src` uses "\" and a forward-slash-only
+      // regex silently matches nothing, which used to copy native/target (~800 MB) into
+      // the app package.
+      const rel = src.slice(nativeSrc.length).replace(/\\/g, "/");
       // Skip Rust source, build artifacts, and node_modules
       if (/\/(target|node_modules|src)(\/|$)/.test(rel)) return false;
       if (/\/(Cargo\.(toml|lock)|build\.rs|\.cargo)/.test(rel)) return false;
@@ -64,4 +67,16 @@ if (isClean) {
     },
   });
   console.log("[prepare-pack] copied native/ (runtime only) → packages/electron/native/");
+
+  // The Rust router lives under target/release (excluded above). Ship just the binary so
+  // `rust_routing.enabled: true` works without dragging the whole cargo target dir along.
+  const routerBin = resolve(nativeSrc, "ocx-router", "target", "release", "ocx-router.exe");
+  if (existsSync(routerBin)) {
+    const routerDest = resolve(nativeDest, "ocx-router");
+    mkdirSync(routerDest, { recursive: true });
+    copyFileSync(routerBin, resolve(routerDest, "ocx-router.exe"));
+    console.log(`[prepare-pack] copied ocx-router.exe (${(statSync(routerBin).size / 1024 / 1024).toFixed(1)} MB)`);
+  } else {
+    console.warn("[prepare-pack] ocx-router.exe not built — Rust routing will degrade to the TypeScript adapter");
+  }
 }

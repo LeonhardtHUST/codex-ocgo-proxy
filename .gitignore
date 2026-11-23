@@ -8,6 +8,7 @@ data/
 /public/
 docs/*
 !docs/MULTI_AGENT_WORKFLOW.md
+!docs/BUILD_AND_RELEASE.md
 !docs/OPENCODEX_ROUTER_DESIGN.md
 !docs/OPENCODE_CONTRACT.md
 !docs/AUTOSTART.md

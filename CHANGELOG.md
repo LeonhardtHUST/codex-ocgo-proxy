@@ -75,6 +75,10 @@
 
 ### Fixed
 
+- **Windows 打包产物修复**：`scripts/prepare-pack.mjs` 的排除过滤器只在 `/` 分隔符上匹配，Windows 下 `native/target`
+  （约 810 MB）被整包复制进安装包，成品从 300 MB 膨胀到 1.1 GB；现先归一化分隔符再匹配，并把构建好的
+  `ocx-router.exe` 单独复制进包。
+
 - **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
   "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
   流异常结束时的错误信息带上跳过数量与脱敏片段。

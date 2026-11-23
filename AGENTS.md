@@ -10,7 +10,20 @@
 - 多 Agent 授权不扩大网络、真实 API、外部写入、提交、发布或破坏性操作权限。
 - 达到当前任务验收或停止条件后立即停止，不自动进入下一票据。
 
+## 桌面版构建与打包（Windows）
+
+完整流程、命令与排错顺序见 `docs/BUILD_AND_RELEASE.md`；这里只列必须遵守的硬规则。
+
+- **启动验证前先清 `ELECTRON_RUN_AS_NODE`**：该变量存在时 `OpenCodeX-Router.exe` 会按纯 Node 运行，表现为"没有窗口、没有进程、退出码 0/9、无输出"。用 `ProcessStartInfo.EnvironmentVariables.Remove('ELECTRON_RUN_AS_NODE')` 启动，再以进程数 + 8080 监听 + `GET /` 200 三项一起判定成功。
+- **打包必须"先 prepack 后打包、最后 postpack"**（`npm run prepack` → `npx electron-builder ...` → `npm run postpack`），否则 `config/`、`public/`、`bin/`、`native/` 不会进入 `packages/electron/`。
+- **路径过滤器先归一化分隔符再匹配**：Windows 上 `src.slice()` 给的是反斜杠转义，只用 `/target` 的正则永远不命中；`native/target` 曾因此被打进包，成品由 300 MB 膨胀到 1.1 GB。`native/ocx-router/.exe` 需要单独复制。
+- **Windows 必须同时产出 setup 与 portable**：`win.target` 同时列 `nsis` 与 `portable`，并给 `nsis.artifactName` / `portable.artifactName` 分别命名，否则两者同名互相覆盖。CI 用 `electron-builder.ocx.yml`（输出 `release-ocx/`），本地用 `electron-builder.yml`（输出 `release/`）。
+- **本地没有符号链接权限时**：`winCodeSign` 内含 macOS 符号链接，非管理员解包会失败（`Cannot create symbolic link`）。用 `--config.win.signAndEditExecutable=false` 跳过，或开启 Windows 开发者模式；CI 的 Windows runner 是管理员，可正常产出 nsis/portable。
+- **首次打包需要下载 electron 与 nsis 工具包**：本机直连 GitHub 会超时，需设置 `HTTPS_PROXY=http://127.0.0.1:7897`。
+- **发布只走 `ocx-v*` 标签**，推送即触发 `.github/workflows/ocx-release.yml`（校验 → 构建 → 冒烟 → draft → 校验资产与 SHA256 → 转 prerelease），永不覆盖既有标签或上游仓库。
+
 ## Gemini / Antigravity Schema 与日志
+
 
 - Gemini / Antigravity 的工具参数及结构化输出 schema 必须按 Gemini 支持的字段白名单清洗；清除 `prefixItems` 等不支持字段后，如果 schema 仍为 `type: array` 且缺少 `items`，需补宽松的 `{}` schema，避免 Gemini 的 `missing field` 校验错误。为此类变换补充嵌套 schema 回归测试。
 - 持久化请求/错误诊断时，必须先脱敏并限制单条记录和文件大小；不要提交临时的原始 tools / request dump，也不要记录凭据。

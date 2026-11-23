@@ -10,6 +10,7 @@ import {
   upstreamCandidates,
   wireBaseUrl,
 } from "@src/opencode/upstreams.js";
+import { OpenCodeConfigSchema as SchemaForNormalize, normalizeOpenCodeEnabled } from "@src/opencode/config.js";
 import { OpenCodeConfigSchema } from "@src/opencode/config.js";
 import {
   OpenCodeError,
@@ -42,11 +43,15 @@ describe("opencode upstreams", () => {
     expect(resolveUpstreamApiKey(withKeys, "zen-free")).toBe("zen-key");
   });
 
-  it("gates upstreams on both the global switch and the per-upstream switch", () => {
+  it("gates each upstream on its own switch, ignoring the retired global one", () => {
     expect(isUpstreamEnabled(config, "go")).toBe(true);
     expect(isUpstreamEnabled(config, "zen-free")).toBe(true);
-    expect(isUpstreamEnabled(OpenCodeConfigSchema.parse({}), "go")).toBe(false);
-    expect(isUpstreamEnabled(OpenCodeConfigSchema.parse({ enabled: true, upstreams: { go: { enabled: false } } }), "go")).toBe(false);
+    // No global gate any more: defaults keep go/zen on, zen-free stays opt-in.
+    expect(isUpstreamEnabled(OpenCodeConfigSchema.parse({}), "go")).toBe(true);
+    expect(isUpstreamEnabled(OpenCodeConfigSchema.parse({}), "zen-free")).toBe(false);
+    expect(isUpstreamEnabled(OpenCodeConfigSchema.parse({ upstreams: { go: { enabled: false } } }), "go")).toBe(false);
+    // A stale global false must not disable anything.
+    expect(isUpstreamEnabled(OpenCodeConfigSchema.parse({ enabled: false }), "go")).toBe(true);
   });
 
   it("maps each wire to the documented base URL and request path", () => {
@@ -144,5 +149,32 @@ describe("wire selection", () => {
   it("returns undefined for models this router cannot forward", () => {
     expect(resolveWireProtocol({ ...entry, protocols: ["systemone"] })).toBeUndefined();
     expect(resolveWireProtocol(undefined)).toBeUndefined();
+  });
+});
+
+describe("normalizeOpenCodeEnabled", () => {
+  it("flips a stale false and reports it once", () => {
+    const raw: Record<string, unknown> = { opencode: { enabled: false } };
+    expect(normalizeOpenCodeEnabled(raw)).toBe(true);
+    expect((raw.opencode as Record<string, unknown>).enabled).toBe(true);
+  });
+
+  it("leaves true and absent sections alone", () => {
+    const withTrue: Record<string, unknown> = { opencode: { enabled: true } };
+    expect(normalizeOpenCodeEnabled(withTrue)).toBe(false);
+    expect((withTrue.opencode as Record<string, unknown>).enabled).toBe(true);
+
+    const absent: Record<string, unknown> = {};
+    expect(normalizeOpenCodeEnabled(absent)).toBe(false);
+    expect(absent.opencode).toBeUndefined();
+  });
+
+  it("survives a malformed section", () => {
+    expect(normalizeOpenCodeEnabled({ opencode: "nope" })).toBe(false);
+    expect(normalizeOpenCodeEnabled({ opencode: [] })).toBe(false);
+  });
+
+  it("defaults to enabled so the family needs no opt-in", () => {
+    expect(SchemaForNormalize.parse({}).enabled).toBe(true);
   });
 });

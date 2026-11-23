@@ -101,7 +101,13 @@ export function resolveTimeoutSeconds(options: {
   return options.legacyTimeoutSeconds;
 }
 
-/** Whether the OpenCode provider family should serve requests at all. */
+/**
+ * Whether the OpenCode provider family should serve requests at all.
+ *
+ * `opencode.enabled` is deprecated and normalized to true at config load, so this now only
+ * distinguishes "opencode section present" from "legacy `ocgo` section only". Kept because
+ * the legacy sidecar path still routes through it.
+ */
 export function isOpenCodeServing(options: {
   legacyEnabled: boolean;
   opencode?: Pick<OpenCodeConfig, "enabled">;

@@ -1,6 +1,6 @@
 # OpenCode 上游与 Rust 路由（本机部署、验收与回滚）
 
-OpenCode 家族（`go` / `zen` / `zen-free`）与 Codex 同级，默认关闭。App 负责选凭据、定协议、定上游；
+OpenCode 家族（`go` / `zen` / `zen-free`）与 Codex 同级，**没有启用开关**：和 `codex-official` 一样始终可用，能不能用取决于有没有凭据。App 负责选凭据、定协议、定上游；
 Rust 路由只执行请求转发。Codex OAuth 与第三方 API Keys 仍在 Dashboard 的账号 / API Keys 页面管理，
 OpenCode 凭据不参与 Codex 账号轮换。
 
@@ -31,9 +31,9 @@ CLI 与桌面版共用同一个 `data/`（两个 SQLite、调度器状态、若�
 - 进程崩溃留下的锁按 **pid 存活探测**回收，不需要等超时，也不需要手工删文件
 - 只有数据目录相同才会互斥：不同工作目录、不同安装位置各自独立
 
-## 启用
+## 开始使用
 
-1. 在 Dashboard 的 **OpenCode** 页面添加凭据并绑定模型。凭据只存本机，不进 Git。
+1. 在 Dashboard 的 **OpenCode** 页面添加凭据并绑定模型。凭据只存本机，不进 Git。没有凭据时模型列表照样可见，请求会明确报「无可用凭据」。
 2. 把 [配置样例](config/ocx.local.example.yaml) 的 `opencode` 段合并进 `data/local.yaml`，按需打开开关。
 3. 重启 App。源码构建版用 `npm start`；打包版直接启动。
 4. 自检：

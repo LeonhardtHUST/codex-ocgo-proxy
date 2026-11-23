@@ -43,7 +43,7 @@
 
 只需一个 ChatGPT 账号或 OpenCode 账号（或接入第三方 API 中转站），配合本网关即可在本地搭建专属的 AI 编程助手网关。
 
-OpenCode 家族（`opencode-go` / `opencode-zen` / `opencode-zen-free`）默认关闭；接入、Rust 路由与回滚见 [OpenCode 上游与 Rust 路由](OCX_LOCAL.md)。
+OpenCode 家族（`opencode-go` / `opencode-zen` / `opencode-zen-free`）与 `codex-official` 一样始终可用，没有单独的启用开关——能不能用取决于有没有配凭据；接入、Rust 路由与回滚见 [OpenCode 上游与 Rust 路由](OCX_LOCAL.md)。
 
 ## 🧬 上游血缘与独立性
 

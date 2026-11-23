@@ -243,14 +243,15 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   const ocgo = { config: cfg.ocgo, pool: keySelector, opencode: cfg.opencode, graphStore: fallbackGraphStore };
   /** Bridge for the chat-completions / messages inbound routes. */
   const opencodeBridge = { legacy: cfg.ocgo, opencode: cfg.opencode, pool: keySelector };
-  if (ocgo.config?.enabled || cfg.opencode?.enabled) upstreamRouter.enableOCGoNamespace();
+  // The namespace is always registered: opencode is a first-class provider, not an opt-in.
+  upstreamRouter.enableOCGoNamespace();
   // OpenCode provider family: catalog refresh runs off the request path.
   upstreamRouter.setLegacyOCGoPrefix(cfg.opencode?.legacy_ocgo_prefix ?? true);
-  if (cfg.opencode?.enabled) startOpenCodeCatalogRefresh(cfg.opencode);
+  startOpenCodeCatalogRefresh(cfg.opencode);
 
   // In-repo Rust router: started after the catalog exists, so it can be seeded.
   rustRouter = null;
-  if (cfg.opencode?.enabled && cfg.opencode.rust_routing.enabled && !cfg.opencode.rust_routing.legacy_sidecar) {
+  if (cfg.opencode.rust_routing.enabled && !cfg.opencode.rust_routing.legacy_sidecar) {
     rustRouter = new RustRouterProcess({
       config: cfg.opencode.rust_routing,
       upstreamRoots: {

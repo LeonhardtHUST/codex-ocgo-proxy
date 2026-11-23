@@ -151,21 +151,12 @@ function getLiveCatalog(): CodexModelInfo[] {
   return getModelCatalog().filter((m) => liveIds.has(m.id));
 }
 
-/** Whether the OpenCode provider family is enabled (false on config failures). */
-function openCodeEnabled(): boolean {
-  try {
-    return getConfig().opencode.enabled;
-  } catch {
-    return false;
-  }
-}
 
 /**
  * OpenCode model rows for `/v1/models`. Served from the local catalog snapshot so a
  * catalog hiccup can never affect model discovery.
  */
 function getOpenCodeModelRows() {
-  if (!openCodeEnabled()) return [];
   try {
     return buildModelViews(getOpenCodeCatalog().listSelectable());
   } catch {
@@ -374,9 +365,6 @@ export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: Clien
 
   // Full OpenCode capability matrix: protocols, context, capabilities, pricing, quotas.
   app.get("/v1/opencode/catalog", (c) => {
-    if (!openCodeEnabled()) {
-      return c.json({ object: "list", enabled: false, data: [] });
-    }
     const catalog = getOpenCodeCatalog();
     const allowed = getClientKeyAllowedModels(c);
     let rows = catalog.list().map(toCatalogRow);
@@ -399,7 +387,8 @@ export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: Clien
       }
     }
     return c.json({
-      enabled: openCodeEnabled(),
+      // Kept for API compatibility; the family is always available now.
+      enabled: true,
       legacy_ocgo_prefix: config.opencode.legacy_ocgo_prefix,
       cache_header_aggregation: config.opencode.cache_header_aggregation,
       rust_routing: {

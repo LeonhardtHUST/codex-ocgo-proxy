@@ -62,11 +62,11 @@ describe("/v1/models with the OpenCode provider family", () => {
     expect(deepseek?.object).toBe("model");
   });
 
-  it("stays silent when the provider family is disabled", async () => {
-    const app = appWith({});
+  it("lists the family even when a stale enabled:false is still in the config", async () => {
+    const app = appWith({ opencode: { enabled: false } });
     const response = await app.request("/v1/models");
     const body = await response.json() as { data: Array<Record<string, unknown>> };
-    expect(body.data.filter((row) => String(row.owned_by).startsWith("opencode-"))).toHaveLength(0);
+    expect(body.data.filter((row) => String(row.owned_by).startsWith("opencode-")).length).toBeGreaterThan(0);
   });
 
   it("serves the full capability matrix on /v1/opencode/catalog", async () => {
@@ -91,11 +91,16 @@ describe("/v1/models with the OpenCode provider family", () => {
     expect(go?.native_protocol).toBe("messages");
   });
 
-  it("returns an empty catalog when disabled instead of failing", async () => {
-    const app = appWith({});
+  it("ignores a leftover enabled:false in the config (deprecated switch)", async () => {
+    // The switch used to gate the whole family; it is now retired, so a stale
+    // `opencode.enabled: false` in someone's data/local.yaml must not hide the catalog.
+    const app = appWith({ opencode: { enabled: false } });
     const response = await app.request("/v1/opencode/catalog");
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ object: "list", enabled: false, data: [] });
+    const body = await response.json() as { object: string; enabled: boolean; data: unknown[] };
+    expect(body.object).toBe("list");
+    expect(body.enabled).toBe(true);
+    expect(body.data.length).toBeGreaterThan(0);
   });
 
   it("reports status behind the admin key", async () => {

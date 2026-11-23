@@ -91,10 +91,13 @@ it("adds a Key and toggles the stored enabled state without resending the secret
   await vi.waitFor(() => expect(button("Enable")?.disabled).toBe(false));
 });
 
-it("permits local edits but disables outbound verification when OCGo is disabled", async () => {
+it("ignores a stale enabled:false from the backend", async () => {
+  // The enable switch is retired; a backend that still reports false must not resurrect
+  // the old "not enabled" banner or block outbound verification.
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ enabled: false, credentials: [entry] })));
   await act(async () => { render(<OCGoKeysPage />, root); });
-  await waitForText("OCGo is disabled");
-  expect(button("Verify")?.disabled).toBe(true);
+  await waitForText("Edit / replace");
+  expect(document.body.textContent ?? "").not.toContain("OCGo is disabled");
+  expect(button("Verify")?.disabled).toBe(false);
   expect(button("Edit / replace")?.disabled).toBe(false);
 });

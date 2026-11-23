@@ -29,9 +29,13 @@ export function resolveUpstreamApiKey(config: OpenCodeConfig, upstream: OpenCode
   return config.upstreams.zen.api_key;
 }
 
-/** Whether a logical upstream is enabled in configuration. */
+/**
+ * Whether a logical upstream is enabled in configuration.
+ *
+ * Only the per-upstream switch counts: the family-wide `opencode.enabled` is deprecated
+ * (always true), and keeping a check here would silently resurrect it.
+ */
 export function isUpstreamEnabled(config: OpenCodeConfig, upstream: OpenCodeUpstreamId): boolean {
-  if (!config.enabled) return false;
   if (upstream === "go") return config.upstreams.go.enabled;
   if (upstream === "zen-free") return config.upstreams.zen_free.enabled;
   return config.upstreams.zen.enabled;

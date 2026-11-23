@@ -60,7 +60,13 @@ export const OpenCodeRustRoutingSchema = z.object({
 }).strict().default({});
 
 export const OpenCodeConfigSchema = z.object({
-  enabled: z.boolean().default(false),
+  /**
+   * Deprecated and ignored: the family is always available, like `codex-official`.
+   * What actually decides whether a request can be served is credentials + the per-upstream
+   * switches below. Kept in the schema so old `data/local.yaml` files still parse;
+   * `normalizeOpenCodeEnabled()` logs a warning and forces it to true.
+   */
+  enabled: z.boolean().default(true),
   upstreams: z.object({
     go: OpenCodeGoUpstreamSchema.default({}),
     zen: OpenCodeZenUpstreamSchema.default({}),
@@ -111,4 +117,26 @@ export function migrateLegacyOCGoSection(raw: Record<string, unknown>): void {
     const source = legacy as Record<string, unknown>;
     if (target.enabled === undefined && typeof source.enabled === "boolean") target.enabled = source.enabled;
   }
+}
+
+/**
+ * Retire the `enabled` switch.
+ *
+ * It existed because the MVP needed an external `ocgo2api-rs` process on loopback: without
+ * that binary the prefix had to be refused. Rust routing is now in-repo and degrades
+ * explicitly, credentials live in the dashboard, and `codex-official` never had such a
+ * switch — so the flag only produced "why is this off?" confusion. Old configs keep parsing;
+ * an explicit `false` is reported once and ignored.
+ */
+export function normalizeOpenCodeEnabled(raw: Record<string, unknown>): boolean {
+  const section = raw.opencode;
+  if (!section || typeof section !== "object" || Array.isArray(section)) return false;
+  const target = section as Record<string, unknown>;
+  if (target.enabled !== false) return false;
+  console.warn(
+    "[Config] `opencode.enabled: false` is deprecated and ignored — the OpenCode family is " +
+      "always available (like codex-official). Remove the key to silence this notice.",
+  );
+  target.enabled = true;
+  return true;
 }

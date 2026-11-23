@@ -57,6 +57,11 @@
 
 - 上游作者的个人推广内容（社交徽章、微信赞赏/Telegram 二维码、Star 历史图表、第一人称叙事）与多语言 README/API 文档。
 
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
 ### Fixed
 
 - **同一数据目录只允许一个后端**：CLI 与桌面版共用 `data/`（两个 SQLite、调度器状态、多个缓存），
@@ -67,6 +72,11 @@
 
 
 ## [v2.1.x](https://github.com/icebear0828/codex-proxy/releases?q=2.1) - 2026-09-01 至今
+
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
 ### Fixed
 
@@ -397,6 +407,11 @@
 - account-import service 测试补充 RT rotation/fallback 2 cases
 
 - Claude Code Setup 卡片：Dashboard 按 Opus/Sonnet/Haiku/自定义 层级一键复制环境变量（推荐模型 gpt-5.4 / gpt-5.3-codex / gpt-5.4-mini）
+
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
 ### Fixed
 
@@ -1013,6 +1028,11 @@
 
 - Dockerfile 安全加固（非 root 用户运行、HEALTHCHECK 探针）
 
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
 ### Fixed
 
 - Electron 模式下 `data/local.yaml` 中的 `server.host` 配置不生效——Electron 硬编码 `127.0.0.1` 覆盖了用户配置，现在 `local.yaml` 显式设置的 host 优先于启动参数（#175）
@@ -1181,6 +1201,11 @@
 
 - Docker 容器内代理自动检测失败：`detectLocalProxy()` 现在同时探测 `127.0.0.1`（裸机）和 `host.docker.internal`（Docker 容器→宿主机），零配置即生效
 
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
 ### Fixed (pipeline)
 
 - Prompt 提取括号定位修复：`extractPrompts()` 的 `lastIndexOf("[")` 无限回溯导致匹配到无关 `[`，截取错误代码片段产出乱码；改为 50 字符窗口内搜索
@@ -1203,6 +1228,11 @@
 
 - 原生 function_call / tool_calls 支持（所有协议）
 
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
 ### Fixed
 
 - 格式错误的 chat payload 返回 400 `invalid_json` 错误
@@ -1220,6 +1250,11 @@
 
 - 清理无用代码、未使用配置，修复类型违规
 
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
 ### Fixed
 
 - 启动日志显示配置的 `proxy_api_key` 而非随机哈希
@@ -1235,6 +1270,11 @@
 ### Changed
 
 - README 快速开始按平台重组
+
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
 ### Fixed
 
@@ -1264,6 +1304,11 @@
 - 系统字体替换 Google Fonts
 - 架构审计修复（P0-P2 稳定性与可靠性）
 
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
 ### Fixed
 
 - 移除所有 `any` 类型
@@ -1292,6 +1337,11 @@
 - Chromium 版本自动检测与动态 `sec-ch-ua` 生成
 - 请求时序 jitter 随机化
 - Dashboard 实时代码示例与配额显示
+
+### Changed
+
+- **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
+  旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
 ### Fixed
 

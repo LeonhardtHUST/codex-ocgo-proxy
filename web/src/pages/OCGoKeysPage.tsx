@@ -120,7 +120,6 @@ export function OCGoKeysPage({ masterApiKey }: { masterApiKey?: string }) {
     </div>
     {error && <p role="alert" class="text-sm text-red-600 dark:text-red-400">{label("OCGo operation failed. Check the administrator session and key configuration.", "OCGo 操作失败，请检查管理员会话和凭据配置。")} {error !== "load" && error}</p>}
     {notice && <p role="status" class="text-sm">{notice}</p>}
-    {snapshot && !snapshot.enabled && <p class="rounded-lg border border-amber-300 px-3 py-2 text-sm">{label("OCGo is disabled. Set ocgo.enabled: true in the local configuration and restart to generate or verify.", "OCGo 尚未启用。将本地配置中的 ocgo.enabled 设为 true 并重启后，才能生成或验证。")}</p>}
     {requests && <p class="text-sm text-slate-500 dark:text-text-dim">
       {label("Client requests", "客户端请求")}: {requests.started} · {label("Succeeded", "成功")}: {requests.succeeded} · {label("Failed", "失败")}: {requests.failed} · {label("Cancelled", "取消")}: {requests.cancelled}. {label("Official quota: unknown. Local counters reset on restart.", "官方配额未知。本地计数在重启后清零。")}
     </p>}
@@ -160,7 +159,7 @@ export function OCGoKeysPage({ masterApiKey }: { masterApiKey?: string }) {
         <div class="flex flex-wrap gap-2">
           <button class={button} disabled={busy} type="button" onClick={() => { setConfirm(null); setEditing(key); }}>{label("Edit / replace", "编辑 / 替换")}</button>
           <button class={button} disabled={busy} type="button" onClick={() => void run(() => call(`/${encodeURIComponent(key.id)}`, "PATCH", { enabled: !key.enabled }))}>{key.enabled ? label("Disable", "禁用") : label("Enable", "启用")}</button>
-          <button class={button} disabled={busy || !snapshot.enabled || !key.enabled || cooling || key.invalid || key.busy || key.models.every((model) => key.deniedModels.includes(model))} type="button" onClick={() => { setEditing(null); setConfirm({ action: "verify", entry: key }); }}>{label("Verify", "验证")}</button>
+          <button class={button} disabled={busy || !key.enabled || cooling || key.invalid || key.busy || key.models.every((model) => key.deniedModels.includes(model))} type="button" onClick={() => { setEditing(null); setConfirm({ action: "verify", entry: key }); }}>{label("Verify", "验证")}</button>
           <button class={button} disabled={busy} type="button" onClick={() => { setEditing(null); setConfirm({ action: "remove", entry: key }); }}>{label("Remove", "移除")}</button>
         </div>
       </article>;

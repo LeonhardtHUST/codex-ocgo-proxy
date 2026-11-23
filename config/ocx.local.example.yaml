@@ -1,7 +1,7 @@
 # 合并进 data/local.yaml。本文件只放路由开关，不放任何凭据。
+# 注意：OpenCode 家族不需要"启用"——与 codex-official 一样始终可用，
+# 能不能用取决于 Dashboard 里有没有凭据。旧的 `enabled:` 键已废弃（写了会被忽略）。
 opencode:
-  enabled: true
-
   # ocgo: 作为 opencode: 的兼容别名（旧客户端继续可用）
   legacy_ocgo_prefix: true
 

@@ -125,7 +125,9 @@ export function AccountCard({ account, index, onDelete, proxies, onProxyChange, 
   // Quota bars show remaining capacity: 100% at the start, 0% when exhausted.
   const q = account.quota;
   const rl = q?.rate_limit;
-  const pct = rl ? remainingPercent(rl) : (account.status === "active" ? 100 : null);
+  // Never fabricate a number: no cached quota means "unknown", not "100% left".
+  // The old fallback made an unfetchable quota look perfectly healthy.
+  const pct = rl ? remainingPercent(rl) : null;
   const barColor =
     pct == null ? "bg-primary-action" : pct <= 10 ? "bg-red-500" : pct <= 40 ? "bg-amber-500" : "bg-primary-action";
   const pctColor =
@@ -454,7 +456,7 @@ export function AccountCard({ account, index, onDelete, proxies, onProxyChange, 
                     {pct}% {t("remaining")}
                   </span>
                 ) : (
-                  <span class="font-medium text-primary">{t("ok")}</span>
+                  <span class="font-medium text-slate-400 dark:text-text-dim">{t("quotaUnknown")}</span>
                 )}
               </div>
               {pct != null && (

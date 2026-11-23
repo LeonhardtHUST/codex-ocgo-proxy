@@ -581,6 +581,15 @@ export class AccountRegistry {
     if (quota.reset_credits_available == null && entry.cachedQuota?.reset_credits_available != null) {
       mergedQuota.reset_credits_available = entry.cachedQuota.reset_credits_available;
     }
+    // The passive header path (rateLimitToQuota) carries no secondary window and no
+    // per-model buckets, so a single /codex/responses reply used to erase the weekly
+    // window the dashboard had already learned. Keep what only /codex/usage can report.
+    if (quota.secondary_rate_limit == null && entry.cachedQuota?.secondary_rate_limit != null) {
+      mergedQuota.secondary_rate_limit = entry.cachedQuota.secondary_rate_limit;
+    }
+    if (quota.rate_limits_by_limit_id == null && entry.cachedQuota?.rate_limits_by_limit_id != null) {
+      mergedQuota.rate_limits_by_limit_id = entry.cachedQuota.rate_limits_by_limit_id;
+    }
     entry.cachedQuota = mergedQuota;
     entry.quotaFetchedAt = new Date().toISOString();
     entry.quotaVerifyRequired = false; // Reset the dirty flag on fresh update

@@ -10,7 +10,10 @@ describe("AccountList quota refresh", () => {
     );
 
     expect(source).toContain("`/auth/accounts/${encoded}/quota`");
-    expect(source).toContain("console.warn");
+    // A failed refresh must be visible to the user, not just logged to the console
+    // (silent failure is why an unfetchable quota looked healthy for so long).
+    expect(source).toContain("Failed to refresh quota");
+    expect(source).toContain("alert(");
     expect(source).not.toContain("`/auth/accounts/${encoded}/refresh`");
   });
 

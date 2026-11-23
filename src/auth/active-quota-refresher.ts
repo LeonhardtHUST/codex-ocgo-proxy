@@ -105,14 +105,18 @@ export class ActiveQuotaRefresher {
           );
         const isLocked = primaryLocked || primaryExhausted || bucketLocked;
         const isDirty = entry.quotaVerifyRequired === true;
+        // An account that has never produced a quota is exactly the case that needs a
+        // fetch: without this, a failed first fetch pins the dashboard at "unknown" forever
+        // because nothing else ever retries it.
+        const isUnknown = entry.cachedQuota == null;
 
-        if (!isLocked && !isDirty) continue;
+        if (!isLocked && !isDirty && !isUnknown) continue;
 
         // Anti-abuse: ensure minimum time gap between active refreshes per account.
         const lastRefresh = this.lastRefreshedAt.get(entry.id) ?? 0;
         if (now - lastRefresh < this.resolveIntervals().minGapMs) continue;
 
-        console.log(`[ActiveQuotaRefresher] Actively refreshing quota for ${entry.id} (${entry.email ?? "?"}) (locked=${isLocked}, dirty=${isDirty})`);
+        console.log(`[ActiveQuotaRefresher] Actively refreshing quota for ${entry.id} (${entry.email ?? "?"}) (locked=${isLocked}, dirty=${isDirty}, unknown=${isUnknown})`);
         
         // Mark timestamp to enforce throttle.
         this.lastRefreshedAt.set(entry.id, now);

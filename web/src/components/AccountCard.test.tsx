@@ -112,13 +112,14 @@ describe("AccountCard proxy selector", () => {
 describe("AccountCard remaining quota", () => {
   afterEach(() => cleanup());
 
-  it("shows 100% remaining for an active account with no usage data", () => {
-    const { container } = render(
-      <AccountCard account={account()} index={0} onDelete={vi.fn(async () => null)} />,
-    );
+  it("reports an unknown quota instead of fabricating 100% when nothing was fetched", () => {
+    // Regression guard: an active account with no cached quota used to render
+    // "100% remaining", which made a permanently failing quota fetch look healthy.
+    render(<AccountCard account={account()} index={0} onDelete={vi.fn(async () => null)} />);
 
-    expect(screen.getByText("100% remaining")).toBeTruthy();
-    expect(screen.getByTestId("quota-progress-primary").getAttribute("style")).toContain("width: 100%");
+    expect(screen.queryByText("100% remaining")).toBeNull();
+    expect(screen.getByText("quotaUnknown")).toBeTruthy();
+    expect(screen.queryByTestId("quota-progress-primary")).toBeNull();
   });
 
   it("counts down from 100% remaining to 0% as quota is consumed", () => {

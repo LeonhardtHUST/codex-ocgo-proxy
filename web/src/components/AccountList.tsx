@@ -423,7 +423,14 @@ export function AccountList({ accounts, antigravityAccounts = [], onAddAntigravi
               const encoded = encodeURIComponent(id);
               const resp = await fetch(`/auth/accounts/${encoded}/quota`);
               if (!resp.ok) {
-                console.warn(`[AccountList] Failed to refresh quota for account ${id}: ${resp.status}`);
+                // Surface the failure: a silent warn left the card showing stale/absent quota
+                // with no hint that the fetch itself never worked (e.g. proxy cannot reach OpenAI).
+                let detail = `${resp.status}`;
+                try {
+                  const body = (await resp.json()) as { error?: string; detail?: string };
+                  detail = body.detail || body.error || detail;
+                } catch { /* keep the status code */ }
+                alert(`Failed to refresh quota: ${detail}`);
               }
               onRefresh();
             }} onToggleStatus={onToggleStatus} onUpdateLabel={onUpdateLabel} onUpdateCodexFingerprintMode={onUpdateCodexFingerprintMode} />

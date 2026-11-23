@@ -50,6 +50,7 @@
 import type { ParsedRateLimit } from "./rate-limit-headers.js";
 import { parseRateLimitsEvent } from "./rate-limit-headers.js";
 import { CodexApiError } from "./codex-types.js";
+import { isJsonText, sseSnippet } from "./codex-sse.js";
 import type { WsCreateRequest } from "./ws-transport.js";
 import { randomUUID } from "crypto";
 
@@ -206,6 +207,7 @@ export class PersistentWs {
   private upgradeHeaders: Record<string, string | string[]> = {};
   private hooks: PersistentWsHooks;
   private readonly encoder = new TextEncoder();
+  private readonly nonJsonWarned = new WeakSet<object>();
   private pingTimer: ReturnType<typeof setInterval> | undefined;
   /** Last moment we received any signal from the peer (pong or data frame).
    *  Used by the keepalive tick to detect silently-broken connections that
@@ -514,9 +516,21 @@ export class PersistentWs {
         if (responseId) this.hooks.onResponseCompleted?.(responseId);
         queueMicrotask(() => this.releaseAfterTerminalFrame());
       }
-    } else {
+    } else if (isJsonText(raw)) {
+      // Valid JSON that simply has no `type` (scalar/array) can still be relayed as data.
       this.enqueueSessionChunk(sess, this.encoder.encode(`data: ${raw}\n\n`));
+    } else {
+      // A non-JSON text frame is not a Responses event. Forwarding it verbatim would emit
+      // `data: <garbage>`, which clients reject as "malformed server-sent event json".
+      this.noteNonJsonFrame(sess, raw);
     }
+  }
+
+  /** Log a dropped non-JSON frame once per session (avoid log floods on a chatty upstream). */
+  private noteNonJsonFrame(sess: InFlightSession, raw: string): void {
+    if (this.nonJsonWarned.has(sess)) return;
+    this.nonJsonWarned.add(sess);
+    console.warn(`[WS] Dropped a non-JSON upstream frame instead of writing it into SSE: ${sseSnippet(raw)}`);
   }
 
   private handleAbort(): void {

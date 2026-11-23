@@ -21,6 +21,7 @@ import type { CodexInputItem } from "./codex-api.js";
 import type { ParsedRateLimit } from "./rate-limit-headers.js";
 import { parseRateLimitsEvent } from "./rate-limit-headers.js";
 import { CodexApiError, PreviousResponseWebSocketError } from "./codex-types.js";
+import { isJsonText, sseSnippet } from "./codex-sse.js";
 import { getProxyUrl } from "../tls/proxy.js";
 import { isPreviousResponseNotFoundError } from "./error-classification.js";
 import {
@@ -363,6 +364,7 @@ async function openOneShotWs(
     let streamClosed = false;
     let earlyDecisionMade = false;
     let sawTerminalEvent = false;
+    let nonJsonWarned = false;
     let abortRequested = false;
     let expectedCloseBeforeOpen = false;
     const earlyMetadataChunks: Uint8Array[] = [];
@@ -552,9 +554,12 @@ async function openOneShotWs(
             closeWs(1000);
           });
         }
-      } else {
-        const sse = `data: ${raw}\n\n`;
-        enqueueChunk(encoder.encode(sse));
+      } else if (isJsonText(raw)) {
+        enqueueChunk(encoder.encode(`data: ${raw}\n\n`));
+      } else if (!nonJsonWarned) {
+        // Never write `data: <non-JSON>` into SSE: clients reject it as malformed JSON.
+        nonJsonWarned = true;
+        console.warn(`[WS] Dropped a non-JSON upstream frame instead of writing it into SSE: ${sseSnippet(raw)}`);
       }
     });
 

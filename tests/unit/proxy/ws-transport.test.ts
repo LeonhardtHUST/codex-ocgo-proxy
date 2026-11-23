@@ -163,6 +163,21 @@ describe("createWebSocketResponse", () => {
     ws.close();
   });
 
+  it("drops a non-JSON upstream frame instead of writing it into SSE", async () => {
+    const { promise, ws } = await startConnect(BASE_REQUEST, {});
+
+    // A proxy's HTML error page (or any text frame) must never reach the client as
+    // `data: <html>`, which is exactly "malformed server-sent event json".
+    ws.emit("message", "<html>502 Bad Gateway</html>");
+    ws.emit("message", JSON.stringify({ type: "response.created", response: { id: "resp_1" } }));
+    ws.emit("message", JSON.stringify({ type: "response.completed", response: { id: "resp_1" } }));
+
+    const response = await promise;
+    const body = await response.text();
+    expect(body).not.toContain("<html>");
+    expect(body).toContain("response.completed");
+    ws.close();
+  });
   it("uses the global proxy only when proxyUrl is undefined", async () => {
     globalProxyUrl.value = "http://global-proxy.local:8080";
 

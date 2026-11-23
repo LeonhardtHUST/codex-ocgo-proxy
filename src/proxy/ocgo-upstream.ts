@@ -1,6 +1,6 @@
 import { Agent, fetch as directFetch } from "undici";
 import type { CodexResponsesRequest, CodexSSEEvent } from "./codex-types.js";
-import { parseSSEStream } from "./codex-sse.js";
+import { parseSSEStream, sseSnippet } from "./codex-sse.js";
 import type { UpstreamAdapter } from "./upstream-adapter.js";
 import { isOCGoKey, isOCGoModelId, ocgoResponsesUrl, stripOCGoModelPrefix } from "../ocgo-config.js";
 
@@ -163,17 +163,36 @@ export class OCGoUpstream implements UpstreamAdapter {
   }
 
   async *parseStream(response: Response): AsyncGenerator<CodexSSEEvent> {
-    const failed = (): CodexSSEEvent => ({
+    const failed = (detail?: string): CodexSSEEvent => ({
       event: "error",
-      data: { type: "error", error: { code: "ocgo_stream_failed", message: "OCGo stream did not complete" } },
+      data: {
+        type: "error",
+        error: {
+          code: "ocgo_stream_failed",
+          message: detail ? `OCGo stream did not complete: ${detail}` : "OCGo stream did not complete",
+        },
+      },
     });
+    // Frames that are not JSON objects are skipped rather than fatal: keepalive text, a
+    // proxy's HTML error page or a truncated frame must not kill an otherwise healthy
+    // dialogue, and forwarding them would break the client's SSE JSON parsing.
+    let skippedFrames = 0;
+    let firstSkipped: string | undefined;
     try {
       for await (const frame of parseSSEStream(response)) {
         const data = asRecord(frame.data);
+        if (!data) {
+          skippedFrames += 1;
+          if (firstSkipped === undefined) {
+            const raw = typeof frame.data === "string" ? frame.data : JSON.stringify(frame.data);
+            firstSkipped = sseSnippet(raw).replaceAll(this.#key, "[redacted]");
+          }
+          continue;
+        }
         const type = frame.event || (typeof data?.type === "string" ? data.type : "");
-        if (!data || data.type !== type || !/^[a-z][a-z_.]{0,95}$/.test(type) || type.includes(this.#key) ||
+        if (data.type !== type || !/^[a-z][a-z_.]{0,95}$/.test(type) || type.includes(this.#key) ||
             type === "error" || type === "response.failed" || type === "response.incomplete") {
-          yield failed();
+          yield failed(`unexpected event "${type}"`);
           return;
         }
         // Defensive suppression if an upstream unexpectedly echoes the credential in a JSON event.
@@ -182,7 +201,11 @@ export class OCGoUpstream implements UpstreamAdapter {
         yield { event: type, data: JSON.parse(serialized) as unknown };
         if (type === "response.completed") return;
       }
-      yield failed();
+      yield failed(
+        skippedFrames > 0
+          ? `stream ended after skipping ${skippedFrames} non-JSON frame(s), first: ${firstSkipped}`
+          : undefined,
+      );
     } catch {
       yield failed();
     } finally {

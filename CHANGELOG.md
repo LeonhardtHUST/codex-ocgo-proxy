@@ -64,6 +64,10 @@
 
 ### Fixed
 
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
+
 - **同一数据目录只允许一个后端**：CLI 与桌面版共用 `data/`（两个 SQLite、调度器状态、多个缓存），
   此前可以同时启动两个进程互相覆写。现在后启动者以退出码 `3` 失败并指出占用者的 pid 与端口，
   桌面版遇锁冲突弹窗后退出而不是改随机端口继续跑；崩溃残留的锁按 pid 存活探测自动回收。
@@ -79,6 +83,10 @@
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
 ### Fixed
+
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - 保留 Anthropic `tool_choice.disable_parallel_tool_use` 并在内部请求与 Anthropic 上游之间传递单工具调用限制；OpenAI 的 `parallel_tool_calls` 已可端到端透传。Gemini GenerateContent API 没有等价字段，现对显式 `parallel_tool_calls: false` 请求返回 400，而不是静默丢弃该限制。（#824）
 - 保留 Anthropic 工具上的 `allowed_callers` 限制与 `strict` 校验标记，并在回发 Anthropic 上游时原样带回，不再静默丢失。（#818）
@@ -414,6 +422,10 @@
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
 ### Fixed
+
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - 修复 `/v1/responses` 与 `/v1/responses/compact` 在客户端指定未收录模型时静默回退默认模型、响应 `model` 字段误报为默认模型的问题：与 `/v1/chat/completions` 行为一致，未识别模型返回 `404 model_not_found`；`codex` 哨兵与配置默认模型仍正常回退默认。（`src/routes/responses.ts`、`src/routes/responses-compact.ts`、`src/models/model-store.ts`，关联 issue #660）
 
@@ -1035,6 +1047,10 @@
 
 ### Fixed
 
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
+
 - Electron 模式下 `data/local.yaml` 中的 `server.host` 配置不生效——Electron 硬编码 `127.0.0.1` 覆盖了用户配置，现在 `local.yaml` 显式设置的 host 优先于启动参数（#175）
 
 - Dashboard 清空上游代理后 reload 被环境变量 `HTTPS_PROXY` 覆盖回来——`local.yaml` 显式设置的 `proxy_url` 现在优先于环境变量
@@ -1206,7 +1222,11 @@
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
-### Fixed (pipeline)
+### Fixed
+
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。 (pipeline)
 
 - Prompt 提取括号定位修复：`extractPrompts()` 的 `lastIndexOf("[")` 无限回溯导致匹配到无关 `[`，截取错误代码片段产出乱码；改为 50 字符窗口内搜索
 
@@ -1235,6 +1255,10 @@
 
 ### Fixed
 
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
+
 - 格式错误的 chat payload 返回 400 `invalid_json` 错误
 
 ## [v0.7.0](https://github.com/icebear0828/codex-proxy/releases/tag/v0.7.0) - 2026-02-22
@@ -1257,6 +1281,10 @@
 
 ### Fixed
 
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
+
 - 启动日志显示配置的 `proxy_api_key` 而非随机哈希
 - 首次 OAuth 登录后 `useStatus` 未刷新
 
@@ -1277,6 +1305,10 @@
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
 ### Fixed
+
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - Docker 构建完整修复链（代理配置、BuildKit 冲突、host 网络、源码复制顺序、layer 优化）
 - `.env` 行内注释被误解析为 JWT token
@@ -1311,6 +1343,10 @@
 
 ### Fixed
 
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
+
 - 移除所有 `any` 类型
 - 修复图标文字闪烁（FOUC）
 - 修复未认证时的重定向循环
@@ -1344,6 +1380,10 @@
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
 ### Fixed
+
+- **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
+  "malformed server-sent event json"）；OCGo 流解析遇到非 JSON 帧改为跳过并计数，不再中断整段对话，
+  流异常结束时的错误信息带上跳过数量与脱敏片段。
 
 - curl 请求修复
 

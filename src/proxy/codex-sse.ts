@@ -5,6 +5,29 @@
 
 import type { CodexSSEEvent } from "./codex-types.js";
 
+/**
+ * True when the payload is any valid JSON value.
+ *
+ * Used before writing a passthrough frame into SSE: `data: <non-JSON>` is exactly what
+ * clients report as "malformed server-sent event json", so such frames must not be emitted.
+ */
+export function isJsonText(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return false;
+  try {
+    JSON.parse(trimmed);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Short single-line snippet for logs; never the whole frame. */
+export function sseSnippet(text: string, limit = 120): string {
+  const oneLine = text.replace(/\s+/g, " ").trim();
+  return oneLine.length > limit ? `${oneLine.slice(0, limit)}…` : oneLine;
+}
+
 export function parseSSEBlock(block: string): CodexSSEEvent | null {
   let event = "";
   const dataLines: string[] = [];

@@ -48,17 +48,19 @@ This repository is an independent derivative fork of [Codex Proxy](https://githu
 
 ### Desktop App (Easiest)
 
-Download the installer from [GitHub Releases](https://github.com/icebear0828/codex-proxy/releases):
+Download the installer from this repository's [Releases page](https://github.com/LeonhardtHUST/codex-ocgo-proxy/releases):
 
 | Platform | Installer |
 |----------|-----------|
-| Windows | `Codex Proxy Setup x.x.x.exe` |
-| macOS | `Codex Proxy-x.x.x.dmg` |
-| Linux | `Codex Proxy-x.x.x.AppImage` |
+| Windows (installer) | `OpenCodeX-Router-unofficial-<version>-win-x64-setup.exe` |
+| Windows (portable) | `OpenCodeX-Router-unofficial-<version>-win-x64-portable.exe` |
+| Linux (x64) | `OpenCodeX-Router-unofficial-<version>-linux-x64.AppImage` |
+
+> This repository publishes only the three artifacts above (tags look like `ocx-v2.0.77-beta.1`). macOS builds, npm / GitHub Packages, Docker images and the No-Node Lite bundle are published upstream — use the [upstream project](https://github.com/icebear0828/codex-proxy) if you need those channels.
 
 Open the app, log in with your ChatGPT account. Dashboard at `http://localhost:8080`.
 
-### No-Node Lite (Browser/Server, for advanced users)
+### No-Node Lite (published upstream, not by this fork)
 
 If you already have Node.js installed, or need to run OpenCodeX-Router on a server, WSL, or another machine without a desktop, use the optional No-Node Lite distribution. It uses the same backend and dashboard as the Electron app but does not bundle Node.js, so the archive is smaller and the runtime remains under your control. The Electron installers above are unchanged. Download `codex-proxy-<version>-no-node-lite-all-platforms.zip`, extract it, and run the platform entry point from the package root:
 
@@ -136,7 +138,7 @@ docker compose up -d
 ### From Source
 
 ```bash
-git clone https://github.com/icebear0828/codex-proxy.git
+git clone https://github.com/LeonhardtHUST/codex-ocgo-proxy.git
 cd codex-proxy
 npm install                        # Backend dependencies
 cd web && npm install && cd ..     # Frontend dependencies

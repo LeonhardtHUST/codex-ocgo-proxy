@@ -66,20 +66,22 @@ OpenCode 家族（`opencode-go` / `opencode-zen` / `opencode-zen-free`）与 `co
 
 下载 → 安装 → 打开就能用。
 
-**下载安装包** — 打开 [Releases 页面](https://github.com/icebear0828/codex-proxy/releases)，根据系统下载：
+**下载安装包** — 打开本仓 [Releases 页面](https://github.com/LeonhardtHUST/codex-ocgo-proxy/releases)，按系统选择：
 
 | 系统 | 文件 |
 |------|------|
-| Windows | `Codex Proxy Setup x.x.x.exe` |
-| macOS | `Codex Proxy-x.x.x.dmg` |
-| Linux | `Codex Proxy-x.x.x.AppImage` |
+| Windows（安装版） | `OpenCodeX-Router-unofficial-<版本>-win-x64-setup.exe` |
+| Windows（免安装） | `OpenCodeX-Router-unofficial-<版本>-win-x64-portable.exe` |
+| Linux（x64） | `OpenCodeX-Router-unofficial-<版本>-linux-x64.AppImage` |
+
+> 本仓的发布通道只包含上面三种制品（标签形如 `ocx-v2.0.77-beta.1`）。macOS 制品、npm / GitHub Packages、Docker 镜像与 No-Node Lite 套件由上游发布，本仓不提供——需要这些渠道请使用[上游项目](https://github.com/icebear0828/codex-proxy)。
 
 安装后打开应用，点击登录按钮用 ChatGPT 账号登录。浏览器访问 `http://localhost:8080` 即可看到控制面板。
 
 </details>
 
 <details>
-<summary><h3>方式二：No-Node Lite（浏览器/服务器版，适合高级用户）</h3></summary>
+<summary><h3>方式二：No-Node Lite（上游发布，本仓不提供）</h3></summary>
 
 如果你已经安装 Node.js，或者需要在服务器、WSL 等没有桌面环境的机器上运行
 OpenCodeX-Router，可以选择 No-Node Lite。它使用与 Electron 版相同的后端和控制面板，
@@ -186,7 +188,7 @@ docker compose up -d
 <summary><h3>方式四：源码运行</h3></summary>
 
 ```bash
-git clone https://github.com/icebear0828/codex-proxy.git
+git clone https://github.com/LeonhardtHUST/codex-ocgo-proxy.git
 cd codex-proxy
 npm install                        # 安装后端依赖
 cd web && npm install && cd ..     # 安装前端依赖

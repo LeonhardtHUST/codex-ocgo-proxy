@@ -30,15 +30,13 @@ export function interpolateTranslation(template: string, vars?: Record<string, s
 function getInitialLang(): LangCode {
   try {
     const saved = localStorage.getItem("codex-proxy-lang");
-    if (saved === "en" || saved === "zh" || saved === "zh-TW" || saved === "zh-HK" || saved === "ja") {
+    if (saved === "en" || saved === "zh") {
       return saved;
     }
   } catch {}
   const nav = (typeof navigator !== "undefined" ? navigator.language : "").toLowerCase();
-  if (nav.startsWith("ja")) return "ja";
-  if (nav.startsWith("zh-tw") || nav.startsWith("zh-hant-tw")) return "zh-TW";
-  if (nav.startsWith("zh-hk") || nav.startsWith("zh-mo") || nav.startsWith("zh-hant-hk") || nav.startsWith("zh-hant-mo")) return "zh-HK";
-  if (nav.startsWith("zh-hant")) return "zh-TW";
+  // Only Simplified Chinese and English ship, so every Chinese navigator
+  // locale (including traditional-Chinese ones) resolves to the single Chinese bundle.
   if (nav.startsWith("zh")) return "zh";
   return "en";
 }
@@ -55,7 +53,7 @@ export function I18nProvider({ children, initialLang }: { children: ComponentChi
 
   const toggleLang = useCallback(() => {
     setLangState((prev) => {
-      const order: LangCode[] = ["en", "zh", "zh-TW", "zh-HK", "ja"];
+      const order: LangCode[] = ["en", "zh"];
       const idx = order.indexOf(prev);
       const next: LangCode = order[(idx + 1) % order.length];
       try {

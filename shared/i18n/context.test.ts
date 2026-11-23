@@ -14,31 +14,19 @@ describe("interpolateTranslation", () => {
 });
 
 describe("translations parity", () => {
-  it("has exact key parity across en, zh, zh-TW, zh-HK, and ja", () => {
+  it("has exact key parity across en and zh", () => {
     const enKeys = Object.keys(translations.en).sort();
     const zhKeys = Object.keys(translations.zh).sort();
-    const zhTwKeys = Object.keys(translations["zh-TW"]).sort();
-    const zhHkKeys = Object.keys(translations["zh-HK"]).sort();
-    const jaKeys = Object.keys(translations.ja).sort();
 
     expect(zhKeys).toEqual(enKeys);
-    expect(zhTwKeys).toEqual(enKeys);
-    expect(zhHkKeys).toEqual(enKeys);
-    expect(jaKeys).toEqual(enKeys);
   });
 
-  it("has matching placeholders in all language variants for all keys", () => {
+  it("has matching placeholders in both languages for all keys", () => {
     for (const key of Object.keys(translations.en) as (keyof typeof translations.en)[]) {
       const enPlaceholders = [...translations.en[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
       const zhPlaceholders = [...translations.zh[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-      const twPlaceholders = [...translations["zh-TW"][key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-      const hkPlaceholders = [...translations["zh-HK"][key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-      const jaPlaceholders = [...translations.ja[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 
       expect(zhPlaceholders).toEqual(enPlaceholders);
-      expect(twPlaceholders).toEqual(enPlaceholders);
-      expect(hkPlaceholders).toEqual(enPlaceholders);
-      expect(jaPlaceholders).toEqual(enPlaceholders);
     }
   });
 });

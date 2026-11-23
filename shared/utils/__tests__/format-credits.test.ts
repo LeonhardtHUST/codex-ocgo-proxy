@@ -61,23 +61,14 @@ describe("formatUsd", () => {
 });
 
 describe("formatWindowDuration", () => {
-  it("formats minutes, hours, days in English, Simplified Chinese, Traditional Chinese, and Japanese", () => {
+  it("formats minutes, hours, days in English and Simplified Chinese", () => {
     expect(formatWindowDuration(180, "en")).toBe("3m");
     expect(formatWindowDuration(180, "zh")).toBe("3分钟");
-    expect(formatWindowDuration(180, "zh-TW")).toBe("3分鐘");
-    expect(formatWindowDuration(180, "zh-HK")).toBe("3分鐘");
-    expect(formatWindowDuration(180, "ja")).toBe("3分");
 
     expect(formatWindowDuration(18000, "en")).toBe("5h");
     expect(formatWindowDuration(18000, "zh")).toBe("5小时");
-    expect(formatWindowDuration(18000, "zh-TW")).toBe("5小時");
-    expect(formatWindowDuration(18000, "zh-HK")).toBe("5小時");
-    expect(formatWindowDuration(18000, "ja")).toBe("5時間");
 
     expect(formatWindowDuration(86400 * 7, "en")).toBe("7d");
     expect(formatWindowDuration(86400 * 7, "zh")).toBe("7天");
-    expect(formatWindowDuration(86400 * 7, "zh-TW")).toBe("7天");
-    expect(formatWindowDuration(86400 * 7, "zh-HK")).toBe("7天");
-    expect(formatWindowDuration(86400 * 7, "ja")).toBe("7日");
   });
 });

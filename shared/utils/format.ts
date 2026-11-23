@@ -34,32 +34,25 @@ export function formatUsd(usd: number): string {
 }
 
 export function formatWindowDuration(seconds: number, lang?: LangCode | boolean): string {
-  const isZhSimp = lang === "zh" || lang === true;
-  const isZhTrad = lang === "zh-TW" || lang === "zh-HK";
-  const isJa = lang === "ja";
+  // `true` is the legacy "Chinese" call style kept for existing call sites.
+  const isZh = lang === "zh" || lang === true;
   if (seconds >= 86400) {
     const days = Math.floor(seconds / 86400);
-    if (isZhSimp || isZhTrad) return `${days}\u5929`;
-    if (isJa) return `${days}\u65e5`;
+    if (isZh) return `${days}\u5929`;
     return `${days}d`;
   }
   if (seconds >= 3600) {
     const hours = Math.floor(seconds / 3600);
-    if (isZhSimp) return `${hours}\u5c0f\u65f6`;
-    if (isZhTrad) return `${hours}\u5c0f\u6642`;
-    if (isJa) return `${hours}\u6642\u9593`;
+    if (isZh) return `${hours}\u5c0f\u65f6`;
     return `${hours}h`;
   }
   const minutes = Math.floor(seconds / 60);
-  if (isZhSimp) return `${minutes}\u5206\u949f`;
-  if (isZhTrad) return `${minutes}\u5206\u9418`;
-  if (isJa) return `${minutes}\u5206`;
+  if (isZh) return `${minutes}\u5206\u949f`;
   return `${minutes}m`;
 }
 
 export function formatResetTime(unixSec: number, lang?: LangCode | boolean): string {
-  const isZh = lang === "zh" || lang === "zh-TW" || lang === "zh-HK" || lang === true;
-  const isJa = lang === "ja";
+  const isZh = lang === "zh" || lang === true;
   const d = new Date(unixSec * 1000);
   const now = new Date();
   const time = d.toLocaleTimeString(undefined, {
@@ -83,7 +76,7 @@ export function formatResetTime(unixSec: number, lang?: LangCode | boolean): str
     d.getMonth() === tomorrow.getMonth() &&
     d.getDate() === tomorrow.getDate()
   ) {
-    const prefix = isZh ? "\u660e\u5929 " : isJa ? "\u660e\u65e5 " : "Tomorrow ";
+    const prefix = isZh ? "\u660e\u5929 " : "Tomorrow ";
     return prefix + time;
   }
 

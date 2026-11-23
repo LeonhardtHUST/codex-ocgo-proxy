@@ -18,9 +18,6 @@ const SVG_SUN = (
 const LANG_OPTIONS: { id: LangCode; label: string; short: string }[] = [
   { id: "en", label: "English", short: "EN" },
   { id: "zh", label: "简体中文", short: "简" },
-  { id: "zh-TW", label: "繁體中文 (台灣)", short: "繁(台)" },
-  { id: "zh-HK", label: "繁體中文 (香港)", short: "繁(港)" },
-  { id: "ja", label: "日本語", short: "日" },
 ];
 
 /**
@@ -32,9 +29,6 @@ function StableText({ tKey, children, class: cls }: { tKey: TranslationKey; chil
     <span class={`inline-grid ${cls ?? ""}`}>
       <span class="invisible col-start-1 row-start-1 whitespace-nowrap">{translations.en[tKey]}</span>
       <span class="invisible col-start-1 row-start-1 whitespace-nowrap">{translations.zh[tKey]}</span>
-      <span class="invisible col-start-1 row-start-1 whitespace-nowrap">{translations["zh-TW"][tKey]}</span>
-      <span class="invisible col-start-1 row-start-1 whitespace-nowrap">{translations["zh-HK"][tKey]}</span>
-      <span class="invisible col-start-1 row-start-1 whitespace-nowrap">{translations.ja[tKey]}</span>
       <span class="col-start-1 row-start-1 whitespace-nowrap">{children}</span>
     </span>
   );

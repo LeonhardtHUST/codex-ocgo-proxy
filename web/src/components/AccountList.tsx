@@ -210,15 +210,7 @@ export function AccountList({ accounts, antigravityAccounts = [], onAddAntigravi
 
   const updatedAtText = lastUpdated
     ? lastUpdated.toLocaleTimeString(
-        lang === "zh"
-          ? "zh-CN"
-          : lang === "zh-TW"
-          ? "zh-TW"
-          : lang === "zh-HK"
-          ? "zh-HK"
-          : lang === "ja"
-          ? "ja-JP"
-          : "en-US",
+        lang === "zh" ? "zh-CN" : "en-US",
         { hour: "2-digit", minute: "2-digit", second: "2-digit" }
       )
     : null;

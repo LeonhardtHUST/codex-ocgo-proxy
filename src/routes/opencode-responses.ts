@@ -168,6 +168,9 @@ export async function handleOpenCodeResponses(
     c.header("Cache-Control", "no-cache");
     c.header("X-Accel-Buffering", "no");
     const streamed = stream(c, async (writer) => {
+      // Mark streaming only once the callback actually runs: if the client disappears
+      // before that, the outer finally must still release the lease.
+      streaming = true;
       writer.onAbort(() => abort.abort());
       try {
         for await (const event of upstream.parseStream(response)) {
@@ -197,7 +200,6 @@ export async function handleOpenCodeResponses(
         activeLease.release();
       }
     });
-    streaming = true;
     return streamed;
   } catch (error) {
     if (clientSignal.aborted) return opencodeErrorResponse(c, 499 as ContentfulStatusCode, "ocgo_cancelled", "OpenCode request cancelled");

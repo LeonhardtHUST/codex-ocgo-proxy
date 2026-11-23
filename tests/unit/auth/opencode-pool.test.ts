@@ -26,6 +26,33 @@ function fixture() {
 
 const caller = (id: string): OpenCodeSession => ({ caller: { kind: "client_key", id }, id: "same-conversation" });
 
+describe("OpenCode lease reclamation", () => {
+  it("frees a stranded lease after the TTL instead of pinning the pool forever", () => {
+    // Regression: a single-credential pool used to stay 503 ocgo_busy forever once one
+    // lease was stranded (client disconnects after the response starts, before the stream
+    // callback runs). Nothing released it, and no request was actually in flight.
+    const { pool, advance } = fixture();
+    const stranded = pool.acquire("other");
+    expect(stranded.kind).toBe("selected");
+    expect(pool.acquire("other")).toEqual({ kind: "busy" });
+
+    advance(9 * 60 * 1000);
+    expect(pool.acquire("other")).toEqual({ kind: "busy" });
+
+    advance(2 * 60 * 1000); // past the 10-minute ceiling
+    const recovered = pool.acquire("other");
+    expect(recovered.kind).toBe("selected");
+  });
+
+  it("does not reclaim a lease that was released normally", () => {
+    const { pool, take, advance } = fixture();
+    const lease = take("text");
+    lease.release();
+    advance(60 * 1000);
+    expect(pool.acquire("text").kind).toBe("selected");
+  });
+});
+
 describe("OpenCode credential scheduling", () => {
   it("round-robins only model-eligible enabled credentials", () => {
     const { finish, pool } = fixture();
@@ -39,7 +66,7 @@ describe("OpenCode credential scheduling", () => {
     const first = take("other");
     const second = take("text");
     expect(second.credentialId).toBe("b");
-    expect(pool.acquire("text")).toEqual({ kind: "busy" });
+    expect(pool.acquire("other")).toEqual({ kind: "busy" });
     first.release();
     const next = take("other");
     first.release();

@@ -7,6 +7,14 @@ const DEFAULT_BACKOFF_SECONDS = 30;
 const MAX_BACKOFF_SECONDS = 86_400;
 const MAX_AFFINITIES = 4096;
 const AFFINITY_TTL_MS = 30 * 60 * 1000;
+/**
+ * Hard ceiling on how long one credential may sit in flight. Leases are released in
+ * finally blocks everywhere, but a client that disconnects between "response created" and
+ * "stream callback ran" can still strand one: nothing then ever releases it, and with a
+ * single-credential pool every later request gets 503 ocgo_busy until the process restarts.
+ * A lease older than this is therefore reclaimed unconditionally.
+ */
+const LEASE_TTL_MS = 10 * 60 * 1000;
 
 type Caller = { kind: "master" } | { kind: "client_key"; id: string };
 export interface OpenCodeSession {
@@ -42,8 +50,10 @@ export class OpenCodePool {
   readonly #store: Pick<OpenCodeKeyStore, "readCredentials">;
   readonly #clock: () => number;
   #credentials = new Map<string, ActiveCredential>();
-  readonly #inFlight = new Set<string>();
-  readonly #leasedKeys = new Set<string>();
+  /** entryId → acquiredAt (ms) */
+  readonly #inFlight = new Map<string, number>();
+  /** apiKey → acquiredAt (ms) */
+  readonly #leasedKeys = new Map<string, number>();
   readonly #affinity = new Map<string, { entryId: string; generation: symbol; expiresAt: number }>();
   #lastSelectedId?: string;
   readonly #clientRequests = new OpenCodeUsageCounter();
@@ -68,6 +78,13 @@ export class OpenCodePool {
     }
     this.#credentials = next;
     const now = this.#clock();
+    // Reclaim stranded leases (see LEASE_TTL_MS) before anything reads the sets.
+    let reclaimed = 0;
+    for (const [id, at] of this.#inFlight) if (now - at >= LEASE_TTL_MS) { this.#inFlight.delete(id); reclaimed += 1; }
+    for (const [key, at] of this.#leasedKeys) if (now - at >= LEASE_TTL_MS) { this.#leasedKeys.delete(key); reclaimed += 1; }
+    if (reclaimed > 0) {
+      console.warn(`[OpenCodePool] Reclaimed ${reclaimed} stale lease(s) older than ${Math.round(LEASE_TTL_MS / 1000)}s`);
+    }
     for (const [group, until] of this.#quotaUntil) if (until <= now) this.#quotaUntil.delete(group);
     for (const [scope, value] of this.#affinity) {
       if (value.expiresAt <= now || next.get(value.entryId)?.generation !== value.generation) this.#affinity.delete(scope);
@@ -138,8 +155,8 @@ export class OpenCodePool {
     }
 
     const { entry, generation } = selected;
-    this.#inFlight.add(entry.id);
-    this.#leasedKeys.add(entry.apiKey);
+    this.#inFlight.set(entry.id, now);
+    this.#leasedKeys.set(entry.apiKey, now);
     let released = false;
     let failed = false;
     return { kind: "selected", lease: {

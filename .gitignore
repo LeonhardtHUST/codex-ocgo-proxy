@@ -66,3 +66,7 @@ tests/netlab/runtime/
 tests/netlab/reports/
 tests/netlab/.bin/
 native/codex-tls.win32-x64-gnu.node
+packages/electron/public/
+packages/electron/config/
+packages/electron/bin/
+packages/electron/native/

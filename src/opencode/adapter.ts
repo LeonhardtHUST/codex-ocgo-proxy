@@ -18,6 +18,7 @@ import { GeminiUpstream } from "../proxy/gemini-upstream.js";
 import { buildOpenCodeSessionId, buildProjectId, deriveCacheIdentity, type PromptCacheRetention } from "./cache-identity.js";
 import { DEFAULT_OPENCODE_CLIENT } from "../proxy/opencode-headers.js";
 import { OpenCodeError } from "./errors.js";
+import { normalizeReasoningEffort } from "../translation/reasoning-effort.js";
 import type { OpenCodeModelEntry, OpenCodeUpstreamId, OpenCodeWire } from "./model.js";
 import type { ProtocolMatrix } from "./protocol-matrix.js";
 import { firstForwardableWire, isForwardableWire, wireBaseUrl } from "./upstreams.js";
@@ -107,11 +108,26 @@ export class OpenCodeAdapter implements UpstreamAdapter {
     }
 
     const delegate = this.#createDelegate(wire, base);
-    const prepared = this.#applyCacheIdentity(req);
+    const prepared = this.#normalizeEffort(this.#applyCacheIdentity(req));
     this.#lastWire = wire;
     const response = await delegate.createResponse(prepared, signal);
     this.#delegates.set(response, { adapter: delegate, wire });
     return response;
+  }
+
+  /**
+   * Clip the requested reasoning effort to what this model actually exposes.
+   * opencode rejects unknown levels with a 400 (e.g. `max` when it only has xhigh), and the
+   * catalog already carries the per-model allow-list — so map onto it instead of forwarding.
+   */
+  #normalizeEffort(req: CodexResponsesRequest): CodexResponsesRequest {
+    const effort = req.reasoning?.effort;
+    if (!effort) return req;
+    // Deliberately ignore entry.reasoningEfforts: the catalog can advertise Codex-style
+    // levels (max/ultra) that the opencode gateway rejects with 400.
+    const mapped = normalizeReasoningEffort(effort);
+    if (!mapped || mapped === effort) return req;
+    return { ...req, reasoning: { ...req.reasoning, effort: mapped } };
   }
 
   async *parseStream(response: Response): AsyncGenerator<CodexSSEEvent> {

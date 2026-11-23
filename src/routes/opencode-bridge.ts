@@ -18,6 +18,7 @@ import type { CodexResponsesRequest } from "../proxy/codex-types.js";
 import { OpenCodeUpstream } from "../proxy/opencode-sidecar-upstream.js";
 import { X_OPENCODE_SESSION_HEADER } from "../proxy/opencode-headers.js";
 import type { UpstreamAdapter } from "../proxy/upstream-adapter.js";
+import { normalizeReasoningEffort } from "../translation/reasoning-effort.js";
 import type { OpenCodeConfig } from "../opencode/config.js";
 import { createOpenCodeUpstream, isOpenCodeServing } from "../opencode/dispatch.js";
 import type { OpenCodeTier } from "../opencode/namespace.js";
@@ -139,10 +140,22 @@ export async function handleOpenCodeDirect(options: OpenCodeDirectOptions): Prom
     return opencodeErrorResponse(c, 502, "ocgo_request_failed", "OpenCode upstream could not be prepared");
   }
 
+  // opencode accepts only low|medium|high|xhigh; normalise once here so every downstream
+  // adapter (chat / messages / responses) sends a value the upstream accepts.
+  const codexRequest: typeof options.codexRequest = options.codexRequest.reasoning
+    ? {
+        ...options.codexRequest,
+        model: route.resolvedModel,
+        reasoning: {
+          ...options.codexRequest.reasoning,
+          effort: normalizeReasoningEffort(options.codexRequest.reasoning.effort),
+        },
+      }
+    : { ...options.codexRequest, model: route.resolvedModel };
   const directReq: HandleDirectRequestOptions["req"] = {
     ...options.proxyReq,
     model: route.resolvedModel,
-    codexRequest: { ...options.codexRequest, model: route.resolvedModel },
+    codexRequest,
   };
 
   try {
@@ -152,6 +165,13 @@ export async function handleOpenCodeDirect(options: OpenCodeDirectOptions): Prom
       req: directReq,
       fmt: options.fmt,
     });
+    if (options.codexRequest.stream !== true) {
+      // A non-streaming response body was already aggregated inside handleDirectRequest, so
+      // withLeaseRelease would wait for a settle that never comes and strand the lease.
+      if (response.status < 400) lease.complete();
+      lease.release();
+      return response;
+    }
     return withLeaseRelease(response, lease);
   } catch (error) {
     // Unknown transport failures carry no healthy signal for the pool; just free the key.

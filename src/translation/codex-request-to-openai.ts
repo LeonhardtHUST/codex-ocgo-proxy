@@ -9,6 +9,7 @@
  *   - Codex `reasoning.effort` → OpenAI `reasoning_effort` (o-series models)
  */
 
+import { normalizeReasoningEffort } from "./reasoning-effort.js";
 import type { CodexInputItem, CodexContentPart, CodexResponsesRequest } from "../proxy/codex-types.js";
 import { CodexApiError } from "../proxy/codex-types.js";
 import { isRecord } from "./shared-utils.js";
@@ -179,9 +180,11 @@ export function translateCodexToOpenAIRequest(
     body.stream_options = { include_usage: true };
   }
 
-  // Reasoning effort (o-series models)
+  // Reasoning effort (o-series models). Third-party chat upstreams accept at most
+  // low/medium/high/xhigh — forwarding Codex-only levels such as `max` yields a 400.
   if (req.reasoning?.effort) {
-    body.reasoning_effort = req.reasoning.effort;
+    const effort = normalizeReasoningEffort(req.reasoning.effort);
+    if (effort) body.reasoning_effort = effort;
   }
 
   // Tools

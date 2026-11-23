@@ -13,7 +13,7 @@
  * 两种模式共享同一转换。
  */
 
-import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
+import { unsupportedOpenCodeEndpoint } from "./opencode-responses.js";
 import { Hono, type Context } from "hono";
 import type { AccountPool } from "../auth/account-pool.js";
 import type { ClientKeyPool } from "../auth/client-key-pool.js";
@@ -300,7 +300,7 @@ export function createImagesRoutes(
 
     if (rawModel && upstreamRouter) {
       const routeMatch = upstreamRouter.resolveMatch(rawModel);
-      if (routeMatch.kind === "ocgo") return unsupportedOCGoEndpoint(c);
+      if (routeMatch.kind === "opencode") return unsupportedOpenCodeEndpoint(c);
       if (routeMatch.kind === "api-key" || routeMatch.kind === "adapter") {
         if (supportsCodexAuxiliaryJson(routeMatch.adapter)) {
           return runApiKeyImagesPassthrough(

@@ -12,7 +12,7 @@
 
 import { describe, expect, it } from "vitest";
 import { isJsonText, parseSSEStream, sseSnippet, type CodexSSEEvent } from "@src/proxy/codex-sse.js";
-import { OCGoUpstream } from "@src/proxy/ocgo-upstream.js";
+import { OpenCodeUpstream } from "@src/proxy/opencode-sidecar-upstream.js";
 
 const sseResponse = (body: string) =>
   new Response(body, { headers: { "content-type": "text/event-stream" } });
@@ -60,8 +60,8 @@ describe("parseSSEStream with malformed frames", () => {
   });
 });
 
-describe("OCGoUpstream.parseStream resilience", () => {
-  const upstream = new OCGoUpstream("http://127.0.0.1:1/v1", "test-key", 3);
+describe("OpenCodeUpstream.parseStream resilience", () => {
+  const upstream = new OpenCodeUpstream("http://127.0.0.1:1/v1", "test-key", 3);
 
   it("skips a malformed frame and still completes the dialogue", async () => {
     const body =

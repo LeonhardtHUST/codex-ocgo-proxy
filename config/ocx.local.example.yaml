@@ -3,7 +3,7 @@
 # 能不能用取决于 Dashboard 里有没有凭据。旧的 `enabled:` 键已废弃（写了会被忽略）。
 opencode:
   # ocgo: 作为 opencode: 的兼容别名（旧客户端继续可用）
-  legacy_ocgo_prefix: true
+  legacy_prefix: true
 
   # 统一缓存 header 聚合：为同一对话派生稳定的上游 session 身份
   cache_header_aggregation: true

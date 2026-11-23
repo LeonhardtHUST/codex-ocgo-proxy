@@ -24,7 +24,7 @@ describe("config/ocx.local.example.yaml", () => {
   it("demonstrates the documented defaults", () => {
     const config = OpenCodeConfigSchema.parse(sample.opencode);
     expect(config.enabled).toBe(true);
-    expect(config.legacy_ocgo_prefix).toBe(true);
+    expect(config.legacy_prefix).toBe(true);
     expect(config.cache_header_aggregation).toBe(true);
     expect(config.rust_routing.enabled).toBe(true);
     // A non-loopback rust_routing base_url would be rejected at runtime; the sample must not

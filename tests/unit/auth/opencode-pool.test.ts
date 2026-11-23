@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vitest";
-import type { OCGoCredential } from "@src/auth/ocgo-key-store.js";
-import { OCGoPool, type OCGoSession } from "@src/auth/ocgo-pool.js";
+import type { OpenCodeCredential } from "@src/auth/opencode-key-store.js";
+import { OpenCodePool, type OpenCodeSession } from "@src/auth/opencode-pool.js";
 
 function fixture() {
-  const credentials: OCGoCredential[] = [
+  const credentials: OpenCodeCredential[] = [
     { id: "a", name: "First", apiKey: "fake-key-a", enabled: true, models: ["text", "other"] },
     { id: "b", name: "Second", apiKey: "fake-key-b", enabled: true, models: ["text"] },
     { id: "c", name: "Disabled", apiKey: "fake-key-c", enabled: false, models: ["text", "other"] },
   ];
   let now = 0;
-  const pool = new OCGoPool({ readCredentials: () => structuredClone(credentials) }, () => now);
-  const take = (model: string, session?: OCGoSession) => {
+  const pool = new OpenCodePool({ readCredentials: () => structuredClone(credentials) }, () => now);
+  const take = (model: string, session?: OpenCodeSession) => {
     const result = pool.acquire(model, session);
     if (result.kind !== "selected") throw new Error(`Expected lease, got ${result.kind}`);
     return result.lease;
   };
-  const finish = (model: string, session?: OCGoSession) => {
+  const finish = (model: string, session?: OpenCodeSession) => {
     const lease = take(model, session);
     lease.complete();
     lease.release();
@@ -24,9 +24,9 @@ function fixture() {
   return { credentials, pool, take, finish, advance: (ms: number) => { now += ms; } };
 }
 
-const caller = (id: string): OCGoSession => ({ caller: { kind: "client_key", id }, id: "same-conversation" });
+const caller = (id: string): OpenCodeSession => ({ caller: { kind: "client_key", id }, id: "same-conversation" });
 
-describe("OCGo credential scheduling", () => {
+describe("OpenCode credential scheduling", () => {
   it("round-robins only model-eligible enabled credentials", () => {
     const { finish, pool } = fixture();
     expect([finish("text"), finish("text"), finish("text")]).toEqual(["a", "b", "a"]);
@@ -52,7 +52,7 @@ describe("OCGo credential scheduling", () => {
   it("scopes session affinity to the authenticated caller, and skips a busy preferred key", () => {
     const { finish, take } = fixture();
     const alice = caller("alice"), bob = caller("bob");
-    const master: OCGoSession = { caller: { kind: "master" }, id: alice.id };
+    const master: OpenCodeSession = { caller: { kind: "master" }, id: alice.id };
     expect(finish("text", alice)).toBe("a");
     expect(finish("text", bob)).toBe("b");
     expect(finish("text", alice)).toBe("a");

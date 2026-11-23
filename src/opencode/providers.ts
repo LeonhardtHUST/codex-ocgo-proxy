@@ -2,7 +2,7 @@
  * Provider descriptor registry — the single representation of "a provider".
  *
  * Before this module the code had three unrelated representations (adapter map tag,
- * `ApiKeyEntry.provider`, and the OCGo boolean flag). Everything router-facing now
+ * `ApiKeyEntry.provider`, and the OpenCode boolean flag). Everything router-facing now
  * reads descriptors from here, so a new provider is added in exactly one place.
  *
  * See docs/OPENCODEX_ROUTER_DESIGN.md §2.

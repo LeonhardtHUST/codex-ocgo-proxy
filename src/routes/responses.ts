@@ -35,7 +35,7 @@ import {
   sanitizeClientMetadata,
 } from "../proxy/openai-subagent.js";
 import { PASSTHROUGH_FORMAT } from "./responses-passthrough.js";
-import { handleOCGoResponses, unsupportedOCGoEndpoint, type OCGoResponsesOptions } from "./ocgo-responses.js";
+import { handleOpenCodeResponses, unsupportedOpenCodeEndpoint, type OpenCodeResponsesOptions } from "./opencode-responses.js";
 import { handleWithFallback } from "../opencode/fallback-dispatch.js";
 import { handleProviderRoute } from "./provider-bridge.js";
 import { handleCompact } from "./responses-compact.js";
@@ -133,7 +133,7 @@ export function createResponsesRoutes(
   upstreamRouter?: UpstreamRouter,
   clientKeyPool?: ClientKeyPool,
   fallbackUpstream?: FallbackUpstreamStore,
-  ocgo?: OCGoResponsesOptions,
+  openCode?: OpenCodeResponsesOptions,
 ): Hono {
   const app = new Hono();
   // Register errorHandler locally so that when testing this router in isolation (e.g. unit tests),
@@ -167,9 +167,9 @@ export function createResponsesRoutes(
         ? { kind: "codex" as const }
         : { kind: "not-found" as const });
 
-    if (routeMatch.kind === "ocgo") {
-      if (c.req.path.endsWith("/review")) return unsupportedOCGoEndpoint(c);
-      return handleWithFallback(c, body, routeMatch, ocgo ? { ...ocgo, ...(fallbackUpstream ? { fallbackUpstream } : {}) } : undefined);
+    if (routeMatch.kind === "opencode") {
+      if (c.req.path.endsWith("/review")) return unsupportedOpenCodeEndpoint(c);
+      return handleWithFallback(c, body, routeMatch, openCode ? { ...openCode, ...(fallbackUpstream ? { fallbackUpstream } : {}) } : undefined);
     }
 
     if (routeMatch.kind === "not-found") {
@@ -417,7 +417,7 @@ export function createResponsesRoutes(
     }
 
     const routeMatch = upstreamRouter?.resolveMatch(rawModel);
-    if (routeMatch?.kind === "ocgo") return unsupportedOCGoEndpoint(c);
+    if (routeMatch?.kind === "opencode") return unsupportedOpenCodeEndpoint(c);
     const allowUnauthenticated = routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter";
     const authErr = checkAuth(c, accountPool, allowUnauthenticated);
     if (authErr) return authErr;
@@ -475,7 +475,7 @@ export function createResponsesRoutes(
     }
 
     const routeMatch = upstreamRouter?.resolveMatch(rawModel);
-    if (routeMatch?.kind === "ocgo") return unsupportedOCGoEndpoint(c);
+    if (routeMatch?.kind === "opencode") return unsupportedOpenCodeEndpoint(c);
     const allowUnauthenticated = routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter";
     const authErr = checkAuth(c, accountPool, allowUnauthenticated);
     if (authErr) return authErr;

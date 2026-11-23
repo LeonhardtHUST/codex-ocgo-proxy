@@ -56,7 +56,7 @@ import { OpenAIUpstream } from "./proxy/openai-upstream.js";
 import { AnthropicUpstream } from "./proxy/anthropic-upstream.js";
 import { GeminiUpstream } from "./proxy/gemini-upstream.js";
 import { ApiKeyPool } from "./auth/api-key-pool.js";
-import { OCGoKeyStore } from "./auth/ocgo-key-store.js";
+import { OpenCodeKeyStore } from "./auth/opencode-key-store.js";
 import { startOpenCodeCatalogRefresh } from "./opencode/catalog-runtime.js";
 import { getOpenCodeCatalog } from "./opencode/catalog-runtime.js";
 import { RustRouterProcess, setActiveRustRouter } from "./opencode/rust-router.js";
@@ -66,8 +66,8 @@ import { createAutostartRoutes } from "./routes/admin/autostart.js";
 import { enableAutostart } from "./autostart/index.js";
 import { FallbackGraphStore } from "./opencode/fallback-graph/store.js";
 import { createOpenCodeFallbackGraphRoutes } from "./routes/admin/opencode-fallback-graph.js";
-import { createOCGoAdminRoutes } from "./routes/admin/ocgo.js";
-import { OCGoPool } from "./auth/ocgo-pool.js";
+import { createOpenCodeAdminRoutes } from "./routes/admin/opencode.js";
+import { OpenCodePool } from "./auth/opencode-pool.js";
 import { ClientKeyPool } from "./auth/client-key-pool.js";
 import { FallbackUpstreamStore } from "./auth/fallback-upstream.js";
 import { createApiKeyRoutes } from "./routes/api-keys.js";
@@ -230,23 +230,23 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   const apiKeyPool = new ApiKeyPool();
   const hasApiKeys = apiKeyPool.getAll().length > 0;
   const upstreamRouter = createRuntimeUpstreamRouter(adapters, cfg.model_routing, apiKeyPool, proxyPool);
-  const ocgoStore = new OCGoKeyStore();
+  const openCodeStore = new OpenCodeKeyStore();
   const fallbackGraphStore = new FallbackGraphStore();
-  const baseOcgoPool = new OCGoPool(ocgoStore);
+  const baseOpenCodePool = new OpenCodePool(openCodeStore);
   // zen-free aggregation: free models may rotate over every credential when enabled.
-  const zenFreePool = createZenFreePool({ readCredentials: () => ocgoStore.readCredentials() }, cfg.opencode);
+  const zenFreePool = createZenFreePool({ readCredentials: () => openCodeStore.readCredentials() }, cfg.opencode);
   const keySelector = createKeySelector({
-    pool: baseOcgoPool,
+    pool: baseOpenCodePool,
     zenFree: zenFreePool,
     isFreeModel: freeModelPredicate(getOpenCodeCatalog()),
   });
-  const ocgo = { config: cfg.ocgo, pool: keySelector, opencode: cfg.opencode, graphStore: fallbackGraphStore };
+  const legacyOpenCodeOptions = { config: cfg.ocgo, pool: keySelector, opencode: cfg.opencode, graphStore: fallbackGraphStore };
   /** Bridge for the chat-completions / messages inbound routes. */
   const opencodeBridge = { legacy: cfg.ocgo, opencode: cfg.opencode, pool: keySelector };
   // The namespace is always registered: opencode is a first-class provider, not an opt-in.
-  upstreamRouter.enableOCGoNamespace();
+  upstreamRouter.enableOpenCodeNamespace();
   // OpenCode provider family: catalog refresh runs off the request path.
-  upstreamRouter.setLegacyOCGoPrefix(cfg.opencode?.legacy_ocgo_prefix ?? true);
+  upstreamRouter.setLegacyOpenCodePrefix(cfg.opencode?.legacy_prefix ?? true);
   startOpenCodeCatalogRefresh(cfg.opencode);
 
   // In-repo Rust router: started after the catalog exists, so it can be seeded.
@@ -313,7 +313,7 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   const chatRoutes = createChatRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore, opencodeBridge);
   const messagesRoutes = createMessagesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore, opencodeBridge);
   const geminiRoutes = createGeminiRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore);
-  const responsesRoutes = createResponsesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore, ocgo);
+  const responsesRoutes = createResponsesRoutes(accountPool, cookieJar, proxyPool, upstreamRouter, clientKeyPool, fallbackUpstreamStore, legacyOpenCodeOptions);
   const imagesRoutes = createImagesRoutes(accountPool, cookieJar, proxyPool, clientKeyPool, upstreamRouter);
   const apiKeyRoutes = createApiKeyRoutes(apiKeyPool, apiKeyModelCache, memoStore, proxyPool);
   const embeddingsRoutes = createEmbeddingsRoutes(accountPool, apiKeyPool, clientKeyPool, proxyPool, upstreamRouter);
@@ -327,9 +327,9 @@ export async function startServer(options?: StartOptions): Promise<ServerHandle>
   app.route("/", authRoutes);
   app.route("/", accountRoutes);
   app.route("/", apiKeyRoutes);
-  app.route("/", createOCGoAdminRoutes({
-    ...ocgo,
-    store: ocgoStore,
+  app.route("/", createOpenCodeAdminRoutes({
+    ...legacyOpenCodeOptions,
+    store: openCodeStore,
     getMasterKey: () => getConfig().server.proxy_api_key ?? accountPool.getProxyApiKey() ?? null,
   }));
   app.route("/", createOpenCodeFallbackGraphRoutes({
@@ -460,7 +460,7 @@ ${bannerBorder("╚", "╝")}
     app,
     accountPool,
     clientKeyPool,
-    isOCGoModel: (model) => upstreamRouter.isOCGoModel(model),
+    isOpenCodeModel: (model) => upstreamRouter.isOpenCodeModel(model),
   });
 
   // `serve()` returns synchronously before `listen()` actually binds.

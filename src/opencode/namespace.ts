@@ -7,7 +7,7 @@
  *   opencode-go:        → tier "go"
  *   opencode:           → no tier; the catalog decides the logical upstream
  *   ocgo:               → legacy alias for `opencode:`, accepted only while the
- *                         legacy switch is on (see `OpenCodeConfig.legacy_ocgo_prefix`)
+ *                         legacy switch is on (see `OpenCodeConfig.legacy_prefix`)
  */
 
 export const OPENCODE_PREFIX = "opencode:";
@@ -35,7 +35,7 @@ export interface OpenCodeModelRef {
 
 export interface OpenCodeNamespaceOptions {
   /** Accept `ocgo:` as an alias of `opencode:`. Defaults to true so old configs keep working. */
-  legacyOcgo?: boolean;
+  legacyOpenCode?: boolean;
 }
 
 const NAMESPACE_TIER: Record<OpenCodeNamespace, OpenCodeTier | undefined> = {
@@ -57,7 +57,7 @@ const PREFIX_TABLE: ReadonlyArray<{
   { prefix: OPENCODE_LEGACY_PREFIX, namespace: "opencode", legacy: true },
 ];
 
-/** Bare model id rule shared with the legacy OCGo validator. */
+/** Bare model id rule shared with the legacy OpenCode validator. */
 export function isOpenCodeModelId(value: string): boolean {
   return value.length > 0 && value.length <= 128 && !/[^A-Za-z0-9._-]/.test(value);
 }
@@ -71,10 +71,10 @@ export function parseOpenCodeModelRef(
   raw: string,
   options: OpenCodeNamespaceOptions = {},
 ): OpenCodeModelRef | null {
-  const legacyOcgo = options.legacyOcgo ?? true;
+  const legacyOpenCode = options.legacyOpenCode ?? true;
   const value = raw.trim();
   for (const entry of PREFIX_TABLE) {
-    if (entry.legacy && !legacyOcgo) continue;
+    if (entry.legacy && !legacyOpenCode) continue;
     if (!value.startsWith(entry.prefix)) continue;
     const modelId = value.slice(entry.prefix.length);
     if (!isOpenCodeModelId(modelId)) return null;
@@ -95,9 +95,9 @@ export function hasOpenCodeNamespace(
   raw: string,
   options: OpenCodeNamespaceOptions = {},
 ): boolean {
-  const legacyOcgo = options.legacyOcgo ?? true;
+  const legacyOpenCode = options.legacyOpenCode ?? true;
   const value = raw.trim();
-  return PREFIX_TABLE.some((entry) => (legacyOcgo || !entry.legacy) && value.startsWith(entry.prefix));
+  return PREFIX_TABLE.some((entry) => (legacyOpenCode || !entry.legacy) && value.startsWith(entry.prefix));
 }
 
 /** Strip a namespace prefix, returning the bare model id or null. */

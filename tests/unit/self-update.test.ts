@@ -61,7 +61,7 @@ describe("self-update", () => {
     _execFileAsync.mockResolvedValue({ stdout: "", stderr: "" });
   });
 
-  it("does not query upstream or apply updates in the unofficial OCGo desktop build", async () => {
+  it("does not query upstream or apply updates in the unofficial OpenCode desktop build", async () => {
     vi.stubGlobal("__OCX_BUILD__", true);
     const fetch = vi.fn();
     vi.stubGlobal("fetch", fetch);

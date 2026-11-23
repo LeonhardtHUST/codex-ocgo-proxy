@@ -1,6 +1,6 @@
 /**
  * zen-free integration: expose the aggregated pool through the same `acquire` shape the
- * OCGo handler already expects, so the switch becomes effective without touching the
+ * OpenCode handler already expects, so the switch becomes effective without touching the
  * tested request path.
  *
  * Selection rule: a model that the catalogue marks free goes to the zen-free pool when
@@ -8,14 +8,14 @@
  * credential pool exactly as before.
  */
 
-import type { OCGoLease, OCGoPool, OCGoSelection, OCGoSession } from "../auth/ocgo-pool.js";
+import type { OpenCodeLease, OpenCodePool, OpenCodeSelection, OpenCodeSession } from "../auth/opencode-pool.js";
 import type { OpenCodeConfig } from "./config.js";
 import type { OpenCodeCatalog } from "./catalog.js";
 import { ZenFreePool, type ZenFreeCredentialSource, type ZenFreeFailure } from "./zen-free-pool.js";
 
 export interface KeySelectorOptions {
   /** Existing per-model credential pool (unchanged behaviour). */
-  pool: Pick<OCGoPool, "acquire" | "beginClientRequest" | "snapshot">;
+  pool: Pick<OpenCodePool, "acquire" | "beginClientRequest" | "snapshot">;
   /** Free-tier pool; null when the switch is off. */
   zenFree: ZenFreePool | null;
   /** Catalogue lookup used to decide whether a model is free. */
@@ -32,13 +32,13 @@ export function createZenFreePool(
   return new ZenFreePool(source, { poolAllKeys: true });
 }
 
-/** Wrap a zen-free lease so it satisfies the OCGo lease contract. */
+/** Wrap a zen-free lease so it satisfies the OpenCode lease contract. */
 function leaseFromZenFree(
   pool: ZenFreePool,
   credentialId: string,
   apiKey: string,
   models: readonly string[],
-): OCGoLease {
+): OpenCodeLease {
   let settled = false;
   let failed = false;
   return {
@@ -87,12 +87,12 @@ function mapFailure(kind: string): ZenFreeFailure {
  * `acquire` facade: free models go through zen-free, everything else delegates.
  * `beginClientRequest` always delegates (bookkeeping belongs to the original pool).
  */
-export function createKeySelector(options: KeySelectorOptions): Pick<OCGoPool, "acquire" | "beginClientRequest" | "snapshot"> {
+export function createKeySelector(options: KeySelectorOptions): Pick<OpenCodePool, "acquire" | "beginClientRequest" | "snapshot"> {
   const { pool, zenFree, isFreeModel } = options;
   return {
     beginClientRequest: () => pool.beginClientRequest(),
     snapshot: () => pool.snapshot(),
-    acquire: (modelId: string, session?: OCGoSession, opts?): OCGoSelection => {
+    acquire: (modelId: string, session?: OpenCodeSession, opts?): OpenCodeSelection => {
       if (!zenFree || !isFreeModel(modelId)) return pool.acquire(modelId, session, opts);
       const result = zenFree.acquire(modelId);
       if (result.kind === "channel_blocked") {

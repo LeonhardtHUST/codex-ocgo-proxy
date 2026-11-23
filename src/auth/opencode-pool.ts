@@ -1,7 +1,7 @@
-import type { OCGoCredential, OCGoKeyStore } from "./ocgo-key-store.js";
+import type { OpenCodeCredential, OpenCodeKeyStore } from "./opencode-key-store.js";
 
-import type { OCGoFailureKind } from "../proxy/ocgo-errors.js";
-import { OCGoUsageCounter } from "./ocgo-usage.js";
+import type { OpenCodeFailureKind } from "../proxy/opencode-sidecar-errors.js";
+import { OpenCodeUsageCounter } from "./opencode-usage.js";
 
 const DEFAULT_BACKOFF_SECONDS = 30;
 const MAX_BACKOFF_SECONDS = 86_400;
@@ -9,48 +9,48 @@ const MAX_AFFINITIES = 4096;
 const AFFINITY_TTL_MS = 30 * 60 * 1000;
 
 type Caller = { kind: "master" } | { kind: "client_key"; id: string };
-export interface OCGoSession {
+export interface OpenCodeSession {
   caller: Caller;
   id: string;
 }
 
 interface ActiveCredential {
-  entry: OCGoCredential;
+  entry: OpenCodeCredential;
   generation: symbol;
   health: { invalid: boolean; cooldownUntil: number; deniedModels: Set<string> };
-  usage: OCGoUsageCounter;
+  usage: OpenCodeUsageCounter;
 }
 
-export interface OCGoLease {
+export interface OpenCodeLease {
   readonly credentialId: string;
   readonly apiKey: string;
   readonly quotaGroup: string | null;
-  beginAttempt(): ReturnType<OCGoUsageCounter["begin"]>;
+  beginAttempt(): ReturnType<OpenCodeUsageCounter["begin"]>;
   /** Remember affinity only for a successfully completed response. */
   complete(): void;
-  reportFailure(kind: OCGoFailureKind, retryAfterSeconds?: number): void;
+  reportFailure(kind: OpenCodeFailureKind, retryAfterSeconds?: number): void;
   release(): void;
 }
 
-export type OCGoSelection =
-  | { kind: "selected"; lease: OCGoLease }
+export type OpenCodeSelection =
+  | { kind: "selected"; lease: OpenCodeLease }
   | { kind: "unavailable" | "busy" }
   | { kind: "backoff"; retryAfterSeconds: number };
 
 /** A single instance per App. Acquisition is synchronous, including the slot increment. */
-export class OCGoPool {
-  readonly #store: Pick<OCGoKeyStore, "readCredentials">;
+export class OpenCodePool {
+  readonly #store: Pick<OpenCodeKeyStore, "readCredentials">;
   readonly #clock: () => number;
   #credentials = new Map<string, ActiveCredential>();
   readonly #inFlight = new Set<string>();
   readonly #leasedKeys = new Set<string>();
   readonly #affinity = new Map<string, { entryId: string; generation: symbol; expiresAt: number }>();
   #lastSelectedId?: string;
-  readonly #clientRequests = new OCGoUsageCounter();
+  readonly #clientRequests = new OpenCodeUsageCounter();
   #unknownUntil = 0;
   readonly #quotaUntil = new Map<string, number>();
 
-  constructor(store: Pick<OCGoKeyStore, "readCredentials">, clock: () => number = Date.now) {
+  constructor(store: Pick<OpenCodeKeyStore, "readCredentials">, clock: () => number = Date.now) {
     this.#store = store;
     this.#clock = clock;
   }
@@ -64,7 +64,7 @@ export class OCGoPool {
         ? current.generation : Symbol();
       const health = sameKey ? current.health : { invalid: false, cooldownUntil: 0, deniedModels: new Set<string>() };
       for (const model of health.deniedModels) if (!entry.models.includes(model)) health.deniedModels.delete(model);
-      next.set(entry.id, { entry, generation, health, usage: sameKey ? current.usage : new OCGoUsageCounter() });
+      next.set(entry.id, { entry, generation, health, usage: sameKey ? current.usage : new OpenCodeUsageCounter() });
     }
     this.#credentials = next;
     const now = this.#clock();
@@ -74,7 +74,7 @@ export class OCGoPool {
     }
   }
 
-  beginClientRequest(): ReturnType<OCGoUsageCounter["begin"]> {
+  beginClientRequest(): ReturnType<OpenCodeUsageCounter["begin"]> {
     return this.#clientRequests.begin();
   }
 
@@ -96,10 +96,10 @@ export class OCGoPool {
     };
   }
 
-  acquire(modelId: string, session?: OCGoSession, retry?: { previous: OCGoLease; requireIndependentGroup: boolean }, credentialId?: string): OCGoSelection {
+  acquire(modelId: string, session?: OpenCodeSession, retry?: { previous: OpenCodeLease; requireIndependentGroup: boolean }, credentialId?: string): OpenCodeSelection {
     this.#refresh();
     const scope = session && session.id.length > 0 && session.id.length <= 256
-      ? JSON.stringify(["ocgo", session.caller.kind, session.caller.kind === "client_key" ? session.caller.id : null, session.id])
+      ? JSON.stringify(["opencode", session.caller.kind, session.caller.kind === "client_key" ? session.caller.id : null, session.id])
       : undefined;
     const entries = [...this.#credentials.values()];
     const now = this.#clock();

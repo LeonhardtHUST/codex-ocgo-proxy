@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { getConfig, getLocalConfigPath, reloadAllConfigs, ROTATION_STRATEGIES } from "../../config.js";
 import { logStore } from "../../logs/store.js";
-import { hasOCGoModelPrefix } from "../../ocgo-config.js";
+import { hasOpenCodeModelPrefix } from "../../opencode-legacy-config.js";
 import { mutateYaml } from "../../utils/yaml-mutate.js";
 import { isLocalhostRequest } from "../../utils/is-localhost.js";
 import type { AccountPool } from "../../auth/account-pool.js";
@@ -264,8 +264,8 @@ export function createSettingsRoutes(accountPool?: AccountPool, getLanRuntime?: 
         return c.json({ error: result.error });
       }
       if (config.ocgo?.enabled && Object.entries(result.aliases).some(([alias, target]) =>
-        hasOCGoModelPrefix(alias) || hasOCGoModelPrefix(target))) {
-        return c.json({ error: "OCGo models must be requested explicitly and cannot be used in model aliases" }, 400);
+        hasOpenCodeModelPrefix(alias) || hasOpenCodeModelPrefix(target))) {
+        return c.json({ error: "OpenCode models must be requested explicitly and cannot be used in model aliases" }, 400);
       }
       normalizedModelAliases = result.aliases;
     }

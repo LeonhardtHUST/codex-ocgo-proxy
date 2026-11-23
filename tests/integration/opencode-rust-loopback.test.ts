@@ -10,14 +10,14 @@ import { Agent, fetch as directFetch } from "undici";
 import { afterEach, expect, it, vi } from "vitest";
 import type { AccountPool } from "@src/auth/account-pool.js";
 import { UpstreamRouter } from "@src/proxy/upstream-router.js";
-import { OCGoPool } from "@src/auth/ocgo-pool.js";
-import { OCGoConfigSchema } from "@src/ocgo-config.js";
+import { OpenCodePool } from "@src/auth/opencode-pool.js";
+import { LegacyOpenCodeConfigSchema } from "@src/opencode-legacy-config.js";
 import { ApiKeyPool } from "@src/auth/api-key-pool.js";
 import { createResponsesRoutes } from "@src/routes/responses.js";
 
 vi.mock("@src/config.js", () => ({ getConfig: () => ({ server: { proxy_api_key: "fake-app-key" } }) }));
 
-const binary = process.env.OCGO_TEST_RUST_BINARY;
+const binary = process.env.OPENCODE_TEST_RUST_BINARY;
 const cleanup: (() => Promise<unknown>)[] = [];
 afterEach(async () => {
   for (const close of cleanup.splice(0).reverse()) await close();
@@ -34,7 +34,7 @@ function closeServer(server: Server): Promise<void> {
 }
 
 async function startRust(backend: RequestListener) {
-  if (!binary || !isAbsolute(binary)) throw new Error("Provide an absolute OCGO_TEST_RUST_BINARY path");
+  if (!binary || !isAbsolute(binary)) throw new Error("Provide an absolute OPENCODE_TEST_RUST_BINARY path");
   const dir = await mkdtemp(join(tmpdir(), "ocgo-rust-test-"));
   cleanup.push(() => rm(dir, { recursive: true, force: true }));
   const upstream = createServer(backend);
@@ -102,13 +102,13 @@ it.skipIf(!binary)("uses actual Rust for Go translation, selected Bearers, 429 a
     });
   });
   const router = new UpstreamRouter(new Map(), {}, "codex");
-  router.enableOCGoNamespace();
+  router.enableOpenCodeNamespace();
   const pool = { validateProxyApiKey: (key: string) => key === "fake-app-key" } as AccountPool;
   let selectedKey = "fake-go-a";
   let now = 0;
   const app = createResponsesRoutes(pool, undefined, undefined, router, undefined, undefined, {
     config: { enabled: true, base_url: baseUrl, timeout_seconds: 15 },
-    pool: new OCGoPool({ readCredentials: () => [{ id: "fixture", enabled: true, name: "Test", apiKey: selectedKey, models: [modelId] }] }, () => now),
+    pool: new OpenCodePool({ readCredentials: () => [{ id: "fixture", enabled: true, name: "Test", apiKey: selectedKey, models: [modelId] }] }, () => now),
   });
   const send = (signal = AbortSignal.timeout(5_000)) => app.request("/v1/responses", {
     method: "POST", headers: { Authorization: "Bearer fake-app-key", "Content-Type": "application/json" }, signal,
@@ -157,7 +157,7 @@ it.skipIf(!binary)("uses actual Rust for Go translation, selected Bearers, 429 a
   expect(requests).toHaveLength(4);
 
   // Reconstruct the routing layer as on restart with the flag omitted.
-  const rollbackConfig = OCGoConfigSchema.parse(undefined);
+  const rollbackConfig = LegacyOpenCodeConfigSchema.parse(undefined);
   expect(rollbackConfig.enabled).toBe(false);
   const legacy = new ApiKeyPool({ load: () => [], save: () => {} });
   const rolledBack = new UpstreamRouter(new Map(), {}, "codex");
@@ -166,7 +166,7 @@ it.skipIf(!binary)("uses actual Rust for Go translation, selected Bearers, 429 a
     createResponse: async () => { throw new Error("Unexpected legacy network request"); },
     async *parseStream() {},
   }));
-  if (rollbackConfig.enabled) rolledBack.enableOCGoNamespace();
+  if (rollbackConfig.enabled) rolledBack.enableOpenCodeNamespace();
   const rollbackApp = createResponsesRoutes(pool, undefined, undefined, rolledBack);
   const disabled = await rollbackApp.request("/v1/responses", {
     method: "POST", headers: { Authorization: "Bearer fake-app-key", "Content-Type": "application/json" },

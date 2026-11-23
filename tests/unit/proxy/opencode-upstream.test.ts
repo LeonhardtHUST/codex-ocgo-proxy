@@ -7,10 +7,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { getGlobalDispatcher, ProxyAgent, setGlobalDispatcher } from "undici";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { OCGoKeyStore } from "@src/auth/ocgo-key-store.js";
-import { OCGoConfigSchema } from "@src/ocgo-config.js";
+import { OpenCodeKeyStore } from "@src/auth/opencode-key-store.js";
+import { LegacyOpenCodeConfigSchema } from "@src/opencode-legacy-config.js";
 import type { CodexResponsesRequest } from "@src/proxy/codex-types.js";
-import { OCGoUpstream } from "@src/proxy/ocgo-upstream.js";
+import { OpenCodeUpstream } from "@src/proxy/opencode-sidecar-upstream.js";
 
 const selectedKey = "fake-go-key-for-loopback-contract";
 const clientKey = "fake-client-access-credential";
@@ -38,18 +38,18 @@ async function serve(handler: (request: IncomingMessage, response: ServerRespons
   return `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`;
 }
 
-const create = (base: string, seconds = 3) => new OCGoUpstream(base, selectedKey, seconds);
-async function collect(upstream: OCGoUpstream, response: Response): Promise<unknown[]> {
+const create = (base: string, seconds = 3) => new OpenCodeUpstream(base, selectedKey, seconds);
+async function collect(upstream: OpenCodeUpstream, response: Response): Promise<unknown[]> {
   const events = [];
   for await (const event of upstream.parseStream(response)) events.push(event);
   return events;
 }
 
-describe("OCGo configuration and private credential store", () => {
+describe("OpenCode configuration and private credential store", () => {
   it("defaults off and rejects credentials in general application settings", () => {
-    expect(OCGoConfigSchema.parse(undefined).enabled).toBe(false);
-    expect(OCGoConfigSchema.safeParse({ api_key: selectedKey }).success).toBe(false);
-    expect(OCGoConfigSchema.safeParse({ base_url: "http://[::1]:8787/v1" }).success).toBe(true);
+    expect(LegacyOpenCodeConfigSchema.parse(undefined).enabled).toBe(false);
+    expect(LegacyOpenCodeConfigSchema.safeParse({ api_key: selectedKey }).success).toBe(false);
+    expect(LegacyOpenCodeConfigSchema.safeParse({ base_url: "http://[::1]:8787/v1" }).success).toBe(true);
   });
 
   it.each([
@@ -57,28 +57,28 @@ describe("OCGo configuration and private credential store", () => {
     "http://127.0.0.1.example.invalid:8787/v1", "http://127.0.0.1:8787@localhost/v1",
     "http://127.0.0.1:8787/v1?q=x", "http://127.0.0.1:8787/v1/other", "http://127.0.0.1:70000/v1",
   ])("rejects the unsupported base URL %s at config and request boundaries", (url) => {
-    expect(OCGoConfigSchema.safeParse({ base_url: url }).success).toBe(false);
-    expect(() => create(url)).toThrow("Invalid OCGo loopback URL");
+    expect(LegacyOpenCodeConfigSchema.safeParse({ base_url: url }).success).toBe(false);
+    expect(() => create(url)).toThrow("Invalid OpenCode loopback URL");
   });
 
   it("persists separately, rejects duplicates before writing, and sanitizes parse failures", () => {
     const dir = mkdtempSync(join(tmpdir(), "ocgo-test-"));
     cleanups.push(() => rmSync(dir, { recursive: true, force: true }));
     const file = join(dir, "ocgo-keys.json");
-    const store = new OCGoKeyStore(file);
+    const store = new OpenCodeKeyStore(file);
     const first = { id: randomUUID(), apiKey: selectedKey, name: "Test", models: ["kimi-k2.5"], enabled: true };
     expect(store.readCredentials()).toEqual([]);
     store.replaceCredentials([first]);
-    expect(new OCGoKeyStore(file).readCredentials()).toEqual([first]);
+    expect(new OpenCodeKeyStore(file).readCredentials()).toEqual([first]);
     store.replaceCredentials([{ ...first, enabled: false }]);
-    expect(() => store.replaceCredentials([first, { ...first, id: randomUUID() }])).toThrow("Duplicate OCGo credentials");
-    expect(new OCGoKeyStore(file).readCredentials()).toEqual([{ ...first, enabled: false }]);
+    expect(() => store.replaceCredentials([first, { ...first, id: randomUUID() }])).toThrow("Duplicate OpenCode credentials");
+    expect(new OpenCodeKeyStore(file).readCredentials()).toEqual([{ ...first, enabled: false }]);
     writeFileSync(file, selectedKey, "utf8");
-    expect(() => store.readCredentials()).toThrow(/^Invalid OCGo credential store$/);
+    expect(() => store.readCredentials()).toThrow(/^Invalid OpenCode credential store$/);
   });
 });
 
-describe("OCGo's isolated loopback transport", () => {
+describe("OpenCode's isolated loopback transport", () => {
   it("bypasses the global proxy, sends only the selected Bearer, maps the model, and parses text/tools", async () => {
     let proxyHits = 0;
     const proxy = await serve((_request, response) => { proxyHits++; response.writeHead(502).end(); });

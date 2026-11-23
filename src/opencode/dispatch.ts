@@ -2,13 +2,13 @@
  * Decide where an OpenCode model is actually forwarded.
  *
  * Two backends, chosen by configuration:
- *   - `rust_routing.enabled` → the loopback `ocx-router` sidecar (legacy OCGo path);
+ *   - `rust_routing.enabled` → the loopback `ocx-router` sidecar (legacy OpenCode path);
  *   - otherwise              → opencode.ai directly, on the protocol the catalog
  *                              declares for that (upstream, model) pair.
  */
 
 import type { UpstreamAdapter } from "../proxy/upstream-adapter.js";
-import { OCGoUpstream } from "../proxy/ocgo-upstream.js";
+import { OpenCodeUpstream } from "../proxy/opencode-sidecar-upstream.js";
 import type { OpenCodeConfig } from "./config.js";
 import type { OpenCodeCatalog } from "./catalog.js";
 import { getOpenCodeCatalog, getProtocolMatrix } from "./catalog-runtime.js";
@@ -77,7 +77,7 @@ export function createOpenCodeUpstream(options: CreateOpenCodeUpstreamOptions): 
     }
     if (config.rust_routing.legacy_sidecar) {
       // Pre-rename installations point at the external ocgo2api-rs binary.
-      return new OCGoUpstream(config.rust_routing.base_url, apiKey, config.http_timeout_seconds);
+      return new OpenCodeUpstream(config.rust_routing.base_url, apiKey, config.http_timeout_seconds);
     }
     // Router requested but not healthy: degrade to the TypeScript adapter, explicitly.
   }

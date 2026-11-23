@@ -2,10 +2,10 @@ import { Agent, fetch as directFetch } from "undici";
 import type { CodexResponsesRequest, CodexSSEEvent } from "./codex-types.js";
 import { parseSSEStream, sseSnippet } from "./codex-sse.js";
 import type { UpstreamAdapter } from "./upstream-adapter.js";
-import { isOCGoKey, isOCGoModelId, ocgoResponsesUrl, stripOCGoModelPrefix } from "../ocgo-config.js";
+import { isOpenCodeKey, isOpenCodeModelId, opencodeResponsesUrl, stripOpenCodeModelPrefix } from "../opencode-legacy-config.js";
 
-import { classifyOCGoFailure, OCGoError, safeRetryAfter } from "./ocgo-errors.js";
-export { OCGoError } from "./ocgo-errors.js";
+import { classifyOpenCodeFailure, OpenCodeError, safeRetryAfter } from "./opencode-sidecar-errors.js";
+export { OpenCodeError } from "./opencode-sidecar-errors.js";
 
 // Don't use global fetch, the global dispatcher, or the Custom proxy resolver.
 const loopbackDispatcher = new Agent();
@@ -36,7 +36,7 @@ const asRecord = (value: unknown): Record<string, unknown> | undefined =>
 const unsupportedInputTypes = new Set(["compaction", "compaction_trigger", "context_compaction", "item_reference", "input_image", "input_file"]);
 
 /** Server/Rust session continuation and multimodal fallbacks are outside the MVP. */
-export function hasUnsupportedOCGoInput(input: readonly unknown[]): boolean {
+export function hasUnsupportedOpenCodeInput(input: readonly unknown[]): boolean {
   // Rust's image detector scans all JSON values and keys, not just content parts.
   // Keep this iterative so deeply nested client input can't overflow the stack.
   const pending: unknown[] = [input];
@@ -64,8 +64,8 @@ export function hasUnsupportedOCGoInput(input: readonly unknown[]): boolean {
 }
 
 /** One request, one selected credential, no retries. Only the App may select another key. */
-export class OCGoUpstream implements UpstreamAdapter {
-  readonly tag = "ocgo";
+export class OpenCodeUpstream implements UpstreamAdapter {
+  readonly tag = "opencode-sidecar";
   readonly logPath = "/v1/responses";
   readonly #url: string;
   readonly #key: string;
@@ -73,11 +73,11 @@ export class OCGoUpstream implements UpstreamAdapter {
   readonly #streams = new WeakMap<Response, AbortController>();
 
   constructor(baseUrl: string, key: string, timeoutSeconds: number) {
-    const url = ocgoResponsesUrl(baseUrl);
-    if (!url) throw new Error("Invalid OCGo loopback URL");
-    if (!isOCGoKey(key)) throw new Error("Invalid OCGo credential");
+    const url = opencodeResponsesUrl(baseUrl);
+    if (!url) throw new Error("Invalid OpenCode loopback URL");
+    if (!isOpenCodeKey(key)) throw new Error("Invalid OpenCode credential");
     if (!Number.isInteger(timeoutSeconds) || timeoutSeconds < 1 || timeoutSeconds > 600) {
-      throw new Error("Invalid OCGo timeout");
+      throw new Error("Invalid OpenCode timeout");
     }
     this.#url = url;
     this.#key = key;
@@ -85,11 +85,11 @@ export class OCGoUpstream implements UpstreamAdapter {
   }
 
   async createResponse(req: CodexResponsesRequest, signal: AbortSignal, onDispatch?: () => void): Promise<Response> {
-    const id = stripOCGoModelPrefix(req.model) ?? "";
-    if (!isOCGoModelId(id)) throw new OCGoError(400, "ocgo_invalid_model", "Invalid OCGo model ID");
-    if (req.previous_response_id !== undefined || hasUnsupportedOCGoInput(req.input) ||
+    const id = stripOpenCodeModelPrefix(req.model) ?? "";
+    if (!isOpenCodeModelId(id)) throw new OpenCodeError(400, "ocgo_invalid_model", "Invalid OpenCode model ID");
+    if (req.previous_response_id !== undefined || hasUnsupportedOpenCodeInput(req.input) ||
         req.tools?.some((tool) => asRecord(tool)?.type !== "function")) {
-      throw new OCGoError(400, "ocgo_unsupported_request", "OCGo supports text and function tools without server-side continuation");
+      throw new OpenCodeError(400, "ocgo_unsupported_request", "OpenCode supports text and function tools without server-side continuation");
     }
     const payload = {
       model: `opencode-go/${id}`,
@@ -124,9 +124,9 @@ export class OCGoUpstream implements UpstreamAdapter {
         body,
       });
     } catch {
-      if (timeout.aborted) throw new OCGoError(504, "ocgo_timeout", "OCGo request timed out");
-      if (signal.aborted) throw new OCGoError(499, "ocgo_cancelled", "OCGo request cancelled");
-      throw new OCGoError(502, "ocgo_unreachable", "Cannot reach the local OCGo backend");
+      if (timeout.aborted) throw new OpenCodeError(504, "ocgo_timeout", "OpenCode request timed out");
+      if (signal.aborted) throw new OpenCodeError(499, "ocgo_cancelled", "OpenCode request cancelled");
+      throw new OpenCodeError(502, "ocgo_unreachable", "Cannot reach the local OpenCode backend");
     }
     if (response.ok && /^text\/event-stream(?:\s*;|$)/i.test(response.headers.get("content-type") ?? "") && response.body) {
       // Don't expose Rust's headers. The body stays linked to the same abort/timeout signal.
@@ -147,19 +147,19 @@ export class OCGoUpstream implements UpstreamAdapter {
       try { errorBody = await readErrorBody(response); } finally { clearTimeout(readDeadline); }
     }
     closeStream.abort();
-    const failure = classifyOCGoFailure(status, errorBody);
+    const failure = classifyOpenCodeFailure(status, errorBody);
     switch (failure) {
-      case "invalid_key": throw new OCGoError(status, "ocgo_invalid_key", "OCGo credential was rejected", undefined, failure);
-      case "model_denied": throw new OCGoError(status, "ocgo_model_denied", "OCGo credential cannot access the model", undefined, failure);
-      case "policy_rejected": throw new OCGoError(status, "ocgo_policy_rejected", "OCGo rejected the request under its content policy", undefined, failure);
-      case "quota_group_exhausted": throw new OCGoError(status, "ocgo_quota_exhausted", "OCGo reported shared quota exhaustion", retryAfter, failure);
+      case "invalid_key": throw new OpenCodeError(status, "ocgo_invalid_key", "OpenCode credential was rejected", undefined, failure);
+      case "model_denied": throw new OpenCodeError(status, "ocgo_model_denied", "OpenCode credential cannot access the model", undefined, failure);
+      case "policy_rejected": throw new OpenCodeError(status, "ocgo_policy_rejected", "OpenCode rejected the request under its content policy", undefined, failure);
+      case "quota_group_exhausted": throw new OpenCodeError(status, "ocgo_quota_exhausted", "OpenCode reported shared quota exhaustion", retryAfter, failure);
       case "key_rate_limit":
-      case "unknown_rate_limit": throw new OCGoError(status, "ocgo_rate_limited", "OCGo backend returned a rate limit", retryAfter, failure);
+      case "unknown_rate_limit": throw new OpenCodeError(status, "ocgo_rate_limited", "OpenCode backend returned a rate limit", retryAfter, failure);
     }
     if (status >= 400 && status < 500) {
-      throw new OCGoError(status, "ocgo_rejected", "OCGo backend rejected the request");
+      throw new OpenCodeError(status, "ocgo_rejected", "OpenCode backend rejected the request");
     }
-    throw new OCGoError(502, "ocgo_bad_response", "Invalid response from the local OCGo backend");
+    throw new OpenCodeError(502, "ocgo_bad_response", "Invalid response from the local OpenCode backend");
   }
 
   async *parseStream(response: Response): AsyncGenerator<CodexSSEEvent> {
@@ -169,7 +169,7 @@ export class OCGoUpstream implements UpstreamAdapter {
         type: "error",
         error: {
           code: "ocgo_stream_failed",
-          message: detail ? `OCGo stream did not complete: ${detail}` : "OCGo stream did not complete",
+          message: detail ? `OpenCode stream did not complete: ${detail}` : "OpenCode stream did not complete",
         },
       },
     });

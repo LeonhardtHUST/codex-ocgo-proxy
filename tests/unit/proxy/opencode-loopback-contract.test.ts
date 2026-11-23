@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CodexApiError, type CodexResponsesRequest } from "@src/proxy/codex-types.js";
 import { ResponsesUpstream } from "@src/proxy/responses-upstream.js";
 
-// M0: the generic Responses adapter, not a claim that the App routes OCGo yet.
+// M0: the generic Responses adapter, not a claim that the App routes OpenCode yet.
 // Callers must supply the Rust model slug here; mapping from ocgo: belongs in M1.
 const goKey = "fake-selected-go-key";
 const clientKey = "fake-client-access-key";
@@ -34,7 +34,7 @@ const frames = [
 const encodeFrame = (data: (typeof frames)[number]) =>
   `event: ${data.type}\r\ndata: ${JSON.stringify(data)}\r\n\r\n`;
 
-describe("OCGo M0: Responses adapter against a real loopback HTTP server", () => {
+describe("OpenCode M0: Responses adapter against a real loopback HTTP server", () => {
   let server: Server;
   let adapter: ResponsesUpstream;
   let mode: "sse" | "hold" | "rate-limit";

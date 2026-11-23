@@ -3,7 +3,7 @@
  * POST /v1/messages — compatible with Claude Code CLI and other Anthropic clients.
  */
 
-import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
+import { unsupportedOpenCodeEndpoint } from "./opencode-responses.js";
 import { handleOpenCodeDirect, type OpenCodeBridge } from "./opencode-bridge.js";
 import { handleProviderRoute } from "./provider-bridge.js";
 import { Hono, type Context } from "hono";
@@ -136,7 +136,7 @@ export function createMessagesRoutes(
       return c.json(makeError("permission_error", modelCheck.message || "Model not allowed"));
     }
 
-    if (upstreamRouter?.isOCGoModel?.(parsed.data.model)) return unsupportedOCGoEndpoint(c);
+    if (upstreamRouter?.isOpenCodeModel?.(parsed.data.model)) return unsupportedOpenCodeEndpoint(c);
     return c.json({ input_tokens: estimateCountTokens(parsed.data) });
   });
 
@@ -159,7 +159,7 @@ export function createMessagesRoutes(
     }
 
     const routeMatch = upstreamRouter?.resolveMatch(req.model);
-    if (routeMatch?.kind === "ocgo" && !opencodeBridge) return unsupportedOCGoEndpoint(c);
+    if (routeMatch?.kind === "opencode" && !opencodeBridge) return unsupportedOpenCodeEndpoint(c);
     const allowUnauthenticated = routeMatch?.kind === "api-key" || routeMatch?.kind === "adapter";
 
     // Auth check (a configured fallback upstream apikey is a valid last-resort).
@@ -217,7 +217,7 @@ export function createMessagesRoutes(
       }),
     });
 
-    if (routeMatch?.kind === "ocgo" && opencodeBridge) {
+    if (routeMatch?.kind === "opencode" && opencodeBridge) {
       return handleOpenCodeDirect({
         c,
         bridge: opencodeBridge,

@@ -11,7 +11,7 @@ import type { ServerHandle } from "@src/index.js";
 // Never probe system proxies, start update jobs or open the native Codex transport.
 vi.mock("@src/tls/proxy.js", () => ({ initProxy: async () => {}, getProxyUrl: () => null }));
 vi.mock("@src/tls/transport.js", () => {
-  const denied = async () => { throw new Error("Native transport is disabled for the OCGo fixture"); };
+  const denied = async () => { throw new Error("Native transport is disabled for the OpenCode fixture"); };
   const transport = { get: denied, post: denied, simplePost: denied, isImpersonate: () => false };
   return { initTransport: async () => transport, getTransport: () => transport, getTransportInfo: () => ({ type: "none", initialized: true, impersonate: false }) };
 });
@@ -22,7 +22,7 @@ vi.mock("@src/self-update.js", async (original) => ({
   ...await original<typeof import("@src/self-update.js")>(), startProxyUpdateChecker: () => {},
 }));
 
-it("restarts the actual App with saved OCGo credentials and restores the legacy Custom route when disabled", async () => {
+it("restarts the actual App with saved OpenCode credentials and restores the legacy Custom route when disabled", async () => {
   const dir = await mkdtemp(join(tmpdir(), "ocgo-app-restart-"));
   const dataDir = join(dir, "data");
   const realFetch = globalThis.fetch;

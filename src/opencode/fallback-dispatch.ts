@@ -12,7 +12,7 @@
  */
 
 import type { Context } from "hono";
-import { handleOCGoResponses, type OCGoResponsesOptions } from "../routes/ocgo-responses.js";
+import { handleOpenCodeResponses, type OpenCodeResponsesOptions } from "../routes/opencode-responses.js";
 import { handleProviderRoute } from "../routes/provider-bridge.js";
 import { PASSTHROUGH_FORMAT } from "../routes/responses-passthrough.js";
 import type { HandleDirectRequestOptions } from "../routes/shared/proxy-handler-types.js";
@@ -24,7 +24,7 @@ import type { FallbackGraph, FallbackNode } from "./fallback-graph/model.js";
 import type { FallbackGraphStore } from "./fallback-graph/store.js";
 import { chooseNextNode, createTraversalState, entryNodeFor, markVisited } from "./fallback-graph/runtime.js";
 
-export interface FallbackAwareOptions extends OCGoResponsesOptions {
+export interface FallbackAwareOptions extends OpenCodeResponsesOptions {
   graphStore?: Pick<FallbackGraphStore, "read">;
   /** Needed when a graph node targets the promoted fallback upstream. */
   fallbackUpstream?: Pick<FallbackUpstreamStore, "get">;
@@ -79,7 +79,7 @@ export function parseProviderTarget(target: string): { providerId: string; model
 
 /** Rewrite the request route to target one graph node. */
 export function routeFromNode(node: FallbackNode, fallback: RouteLike): RouteLike {
-  const ref = parseOpenCodeModelRef(node.target, { legacyOcgo: true });
+  const ref = parseOpenCodeModelRef(node.target, { legacyOpenCode: true });
   if (ref) {
     return {
       resolvedModel: node.target,
@@ -181,10 +181,10 @@ export async function handleWithFallback(
   options?: FallbackAwareOptions,
 ): Promise<Response> {
   const graph = options?.graphStore?.read();
-  if (!graph || graph.nodes.length === 0) return handleOCGoResponses(c, body, route, options);
+  if (!graph || graph.nodes.length === 0) return handleOpenCodeResponses(c, body, route, options);
 
   const entry = entryNodeFor(graph, route.resolvedModel);
-  if (!entry) return handleOCGoResponses(c, body, route, options);
+  if (!entry) return handleOpenCodeResponses(c, body, route, options);
 
   const initialRoute: RouteLike = {
     resolvedModel: route.resolvedModel,
@@ -198,7 +198,7 @@ export async function handleWithFallback(
   const attempt = (attemptRoute: RouteLike): Promise<Response> => {
     const provider = parseProviderTarget(attemptRoute.resolvedModel);
     if (provider) return attemptProvider(c, body, provider, options);
-    return handleOCGoResponses(c, body, attemptRoute, options);
+    return handleOpenCodeResponses(c, body, attemptRoute, options);
   };
 
   const result = await runFallbackChain({
@@ -215,5 +215,5 @@ export async function handleWithFallback(
 
 /** Tier of an arbitrary model reference, for admin/diagnostics surfaces. */
 export function tierOf(modelRef: string): OpenCodeTier | undefined {
-  return parseOpenCodeModelRef(modelRef, { legacyOcgo: true })?.tier;
+  return parseOpenCodeModelRef(modelRef, { legacyOpenCode: true })?.tier;
 }

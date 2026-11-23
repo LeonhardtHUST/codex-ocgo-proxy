@@ -2,7 +2,7 @@
  * UpstreamRouter — routes a model name to the appropriate UpstreamAdapter.
  *
  * Priority (highest to lowest):
- *   - When enabled, the reserved OCGo namespace is resolved without selecting credentials.
+ *   - When enabled, the reserved OpenCode namespace is resolved without selecting credentials.
  *   0. ApiKeyPool entry matching the exact model name
  *   1. Explicit provider prefix: "openai:gpt-4o", "anthropic:claude-3-5-sonnet"
  *   2. Model aliases: { "claude-opus-4-7": "gpt-5.5" }
@@ -16,7 +16,7 @@
 import type { UpstreamAdapter } from "./upstream-adapter.js";
 import type { ApiKeyPool, ApiKeyEntry } from "../auth/api-key-pool.js";
 import { getModelAliases, getModelCatalog, getModelInfo, stripKnownModelSuffixes } from "../models/model-store.js";
-import { hasOCGoModelPrefix, isOCGoModelId, OCGO_MODEL_PREFIX } from "../ocgo-config.js";
+import { hasOpenCodeModelPrefix, isOpenCodeModelId, OPENCODE_MODEL_PREFIX } from "../opencode-legacy-config.js";
 import { parseOpenCodeModelRef, tierToProviderId } from "../opencode/namespace.js";
 import {
   CODEX_FALLBACK_PROVIDER_ID,
@@ -32,7 +32,7 @@ export type UpstreamRouteMatch =
   | { kind: "api-key"; adapter: UpstreamAdapter; entry: ApiKeyEntry; resolvedModel?: string }
   | { kind: "adapter"; adapter: UpstreamAdapter; resolvedModel?: string }
   | { kind: "codex"; adapter?: UpstreamAdapter; resolvedModel?: string }
-  | { kind: "ocgo"; adapter?: never; resolvedModel: string; modelId?: string; tier?: string }
+  | { kind: "opencode"; adapter?: never; resolvedModel: string; modelId?: string; tier?: string }
   /**
    * First-class provider route. `providerId` names a descriptor from the registry
    * (`opencode-go` / `opencode-zen` / `opencode-zen-free` / `codex-fallback`).
@@ -44,11 +44,11 @@ export type UpstreamRouteMatch =
 export class UpstreamRouter {
   private apiKeyPool: ApiKeyPool | null = null;
   private adapterFactory: AdapterFactory | null = null;
-  private ocgoEnabled = false;
+  private openCodeNamespaceEnabled = false;
   /** Provider descriptors — single source of truth for what a provider is. */
   private readonly providers: ProviderRegistry = createDefaultProviderRegistry();
   /** Accept the legacy `ocgo:` prefix as an alias of `opencode:`. */
-  private legacyOcgoPrefix = true;
+  private legacyOpenCodePrefix = true;
   /** Cache: apiKeyEntry.id → adapter instance. Invalidated when key or proxyId changes. */
   private dynamicAdapters = new Map<string, { apiKey: string; proxyId?: string | null; adapter: UpstreamAdapter }>();
 
@@ -66,9 +66,9 @@ export class UpstreamRouter {
     this.providers.setPriority(id, priority);
   }
 
-  /** Toggle the legacy `ocgo:` alias (config: `opencode.legacy_ocgo_prefix`). */
-  setLegacyOCGoPrefix(enabled: boolean): void {
-    this.legacyOcgoPrefix = enabled;
+  /** Toggle the legacy `ocgo:` alias (config: `opencode.legacy_prefix`). */
+  setLegacyOpenCodePrefix(enabled: boolean): void {
+    this.legacyOpenCodePrefix = enabled;
   }
 
   private splitExplicitProvider(model: string): { tag: string; bareModel: string } | null {
@@ -92,26 +92,26 @@ export class UpstreamRouter {
 
   /** Attach the runtime API key pool for dynamic model resolution. */
   setApiKeyPool(pool: ApiKeyPool, factory: AdapterFactory): void {
-    if (this.ocgoEnabled) throw new Error("Attach the API key pool before enabling OCGo");
+    if (this.openCodeNamespaceEnabled) throw new Error("Attach the API key pool before enabling OpenCode");
     this.apiKeyPool = pool;
     this.adapterFactory = factory;
   }
 
   /** Opt in at startup. An existing name must be migrated explicitly, not hijacked. */
-  enableOCGoNamespace(): void {
-    if (this.adapters.has("ocgo") ||
-        Object.entries(this.modelRouting).some(([model, provider]) => hasOCGoModelPrefix(model) || provider === "ocgo") ||
-        Object.entries(getModelAliases()).some(([alias, target]) => hasOCGoModelPrefix(alias) || hasOCGoModelPrefix(target)) ||
-        getModelCatalog().some(({ id }) => hasOCGoModelPrefix(id)) ||
-        this.apiKeyPool?.getAll().some(({ model }) => hasOCGoModelPrefix(model))) {
-      throw new Error("Cannot enable OCGo: migrate existing ocgo: model names, alias bindings or the ocgo Custom provider first");
+  enableOpenCodeNamespace(): void {
+    if (this.adapters.has("opencode-sidecar") ||
+        Object.entries(this.modelRouting).some(([model, provider]) => hasOpenCodeModelPrefix(model) || provider === "opencode-sidecar") ||
+        Object.entries(getModelAliases()).some(([alias, target]) => hasOpenCodeModelPrefix(alias) || hasOpenCodeModelPrefix(target)) ||
+        getModelCatalog().some(({ id }) => hasOpenCodeModelPrefix(id)) ||
+        this.apiKeyPool?.getAll().some(({ model }) => hasOpenCodeModelPrefix(model))) {
+      throw new Error("Cannot enable OpenCode: migrate existing ocgo: model names, alias bindings or the ocgo Custom provider first");
     }
-    this.apiKeyPool?.reserveOCGoNamespace();
-    this.ocgoEnabled = true;
+    this.apiKeyPool?.reserveOpenCodeNamespace();
+    this.openCodeNamespaceEnabled = true;
   }
 
-  isOCGoModel(model: string): boolean {
-    return this.ocgoEnabled && hasOCGoModelPrefix(model);
+  isOpenCodeModel(model: string): boolean {
+    return this.openCodeNamespaceEnabled && hasOpenCodeModelPrefix(model);
   }
 
   resolveMatch(model: string): UpstreamRouteMatch {
@@ -132,21 +132,21 @@ export class UpstreamRouter {
       };
     }
 
-    if (this.ocgoEnabled) {
-      // All opencode namespaces (legacy `ocgo:` plus `opencode*:`) stay on the OCGo
+    if (this.openCodeNamespaceEnabled) {
+      // All opencode namespaces (legacy `ocgo:` plus `opencode*:`) stay on the OpenCode
       // dispatch path during the migration; route handlers are switched over separately.
-      const ref = parseOpenCodeModelRef(normalized, { legacyOcgo: this.legacyOcgoPrefix });
+      const ref = parseOpenCodeModelRef(normalized, { legacyOpenCode: this.legacyOpenCodePrefix });
       if (ref) {
         return {
-          kind: "ocgo",
+          kind: "opencode",
           resolvedModel: normalized,
           modelId: ref.modelId,
           ...(ref.tier ? { tier: ref.tier } : {}),
         };
       }
-      if (hasOCGoModelPrefix(normalized) &&
-          (this.legacyOcgoPrefix || !normalized.startsWith(OCGO_MODEL_PREFIX))) {
-        return { kind: "ocgo", resolvedModel: normalized };
+      if (hasOpenCodeModelPrefix(normalized) &&
+          (this.legacyOpenCodePrefix || !normalized.startsWith(OPENCODE_MODEL_PREFIX))) {
+        return { kind: "opencode", resolvedModel: normalized };
       }
     }
 
@@ -158,8 +158,8 @@ export class UpstreamRouter {
   }
 
   private resolveMatchInternal(model: string, seenAliases: Set<string>): UpstreamRouteMatch {
-    // A runtime alias must not bypass the explicit OCGo model and its client ACL.
-    if (this.ocgoEnabled && hasOCGoModelPrefix(model)) return { kind: "not-found" };
+    // A runtime alias must not bypass the explicit OpenCode model and its client ACL.
+    if (this.openCodeNamespaceEnabled && hasOpenCodeModelPrefix(model)) return { kind: "not-found" };
     const explicitProvider = this.splitExplicitProvider(model);
 
     if (this.apiKeyPool && this.adapterFactory) {

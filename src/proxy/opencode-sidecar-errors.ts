@@ -1,8 +1,8 @@
-export type OCGoFailureKind = "invalid_key" | "key_rate_limit" | "quota_group_exhausted" |
+export type OpenCodeFailureKind = "invalid_key" | "key_rate_limit" | "quota_group_exhausted" |
   "unknown_rate_limit" | "model_denied" | "policy_rejected" | "other";
 
 /** Only explicit, structured signals can change pool state. Never infer scope from free text. */
-export function classifyOCGoFailure(status: number, body: unknown): OCGoFailureKind {
+export function classifyOpenCodeFailure(status: number, body: unknown): OpenCodeFailureKind {
   const error = body !== null && typeof body === "object" && "error" in body ? body.error : undefined;
   const code = error !== null && typeof error === "object" && "code" in error ? error.code : undefined;
   if (status >= 400 && status < 500 && (code === "content_policy_violation" || code === "cyber_policy" || code === "session_blocked_by_cyber_policy")) return "policy_rejected";
@@ -14,16 +14,16 @@ export function classifyOCGoFailure(status: number, body: unknown): OCGoFailureK
   return status === 429 ? "unknown_rate_limit" : "other";
 }
 
-export class OCGoError extends Error {
+export class OpenCodeError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
     message: string,
     readonly retryAfterSeconds?: number,
-    readonly failure: OCGoFailureKind = "other",
+    readonly failure: OpenCodeFailureKind = "other",
   ) {
     super(message);
-    this.name = "OCGoError";
+    this.name = "OpenCodeError";
   }
 }
 

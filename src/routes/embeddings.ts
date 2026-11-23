@@ -5,7 +5,7 @@
  * explicitly include "embeddings". Codex accounts are not used for this path.
  */
 
-import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
+import { unsupportedOpenCodeEndpoint } from "./opencode-responses.js";
 import type { UpstreamRouter } from "../proxy/upstream-router.js";
 import { Hono } from "hono";
 import type { Context } from "hono";
@@ -124,7 +124,7 @@ export function createEmbeddingsRoutes(
       return c.json(openAIError(modelCheck.message || "Model not allowed", "model_not_allowed", "model"));
     }
 
-    if (upstreamRouter?.isOCGoModel(parsed.data.model)) return unsupportedOCGoEndpoint(c);
+    if (upstreamRouter?.isOpenCodeModel(parsed.data.model)) return unsupportedOpenCodeEndpoint(c);
     const resolved = resolveEmbeddingEntry(apiKeyPool, parsed.data.model);
     if (!resolved) {
       c.status(404);

@@ -39,8 +39,8 @@ describe("opencode namespace parsing", () => {
       modelId: "kimi-k2.5",
       legacy: true,
     });
-    expect(parseOpenCodeModelRef("ocgo:kimi-k2.5", { legacyOcgo: false })).toBeNull();
-    expect(parseOpenCodeModelRef("opencode:kimi-k2.5", { legacyOcgo: false })).not.toBeNull();
+    expect(parseOpenCodeModelRef("ocgo:kimi-k2.5", { legacyOpenCode: false })).toBeNull();
+    expect(parseOpenCodeModelRef("opencode:kimi-k2.5", { legacyOpenCode: false })).not.toBeNull();
   });
 
   it("trims surrounding whitespace before parsing", () => {
@@ -70,7 +70,7 @@ describe("opencode namespace parsing", () => {
     expect(hasOpenCodeNamespace("opencode:")).toBe(true);
     expect(hasOpenCodeNamespace("opencode:zen/wrong")).toBe(true);
     expect(hasOpenCodeNamespace("ocgo:model")).toBe(true);
-    expect(hasOpenCodeNamespace("ocgo:model", { legacyOcgo: false })).toBe(false);
+    expect(hasOpenCodeNamespace("ocgo:model", { legacyOpenCode: false })).toBe(false);
     expect(hasOpenCodeNamespace("gpt-6-sol")).toBe(false);
   });
 

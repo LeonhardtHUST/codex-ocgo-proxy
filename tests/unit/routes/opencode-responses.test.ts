@@ -4,8 +4,8 @@ import type { AddressInfo } from "node:net";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AccountPool } from "@src/auth/account-pool.js";
 import type { ClientKeyPool } from "@src/auth/client-key-pool.js";
-import type { OCGoCredential } from "@src/auth/ocgo-key-store.js";
-import { OCGoPool } from "@src/auth/ocgo-pool.js";
+import type { OpenCodeCredential } from "@src/auth/opencode-key-store.js";
+import { OpenCodePool } from "@src/auth/opencode-pool.js";
 import { UpstreamRouter } from "@src/proxy/upstream-router.js";
 import { createResponsesRoutes } from "@src/routes/responses.js";
 import { ApiKeyPool } from "@src/auth/api-key-pool.js";
@@ -27,16 +27,16 @@ const sse = (type: string, fields: object = {}) => `event: ${type}\ndata: ${JSON
 const master = "fake-master";
 const credential = { id: "test", name: "Test", apiKey: key, enabled: true, models: ["kimi-k2.5"] };
 
-describe("OCGo Responses via the app route and real loopback transport", () => {
+describe("OpenCode Responses via the app route and real loopback transport", () => {
   let server: Server;
   let app: ReturnType<typeof createResponsesRoutes>;
   let received: { headers: unknown; raw: string }[];
-  let credentials: OCGoCredential[];
+  let credentials: OpenCodeCredential[];
   let behavior: "ok" | "429" | "hold" | "stream-error";
   let failures: Record<string, { status: number; code: string; delayMs?: number }>;
   let timeoutConfig: { enabled: boolean; base_url: string; timeout_seconds: number };
   let now: number;
-  let ocgoPool: OCGoPool;
+  let openCodePool: OpenCodePool;
   let closed: Promise<boolean>;
   const releaseSlot = vi.fn();
   const recordUsage = vi.fn();
@@ -87,16 +87,16 @@ describe("OCGo Responses via the app route and real loopback transport", () => {
     server.listen(0, "127.0.0.1");
     await once(server, "listening");
     const router = new UpstreamRouter(new Map(), {}, "codex");
-    router.enableOCGoNamespace();
+    router.enableOpenCodeNamespace();
     const pool = { validateProxyApiKey: (value: string) => value === master } as AccountPool;
     const clientPool = {
       getByKey: (value: string) => value === clientKey ? { id: "client-id", allowed_models: [model] } : undefined,
       validateAccess: () => ({ allowed: true }), acquireSlot: () => true, releaseSlot, recordUsage,
     } as unknown as ClientKeyPool;
     timeoutConfig = { enabled: true, base_url: `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`, timeout_seconds: 30 };
-    ocgoPool = new OCGoPool(store, () => now);
+    openCodePool = new OpenCodePool(store, () => now);
     app = createResponsesRoutes(pool, undefined, undefined, router, clientPool, undefined, {
-      config: timeoutConfig, pool: ocgoPool,
+      config: timeoutConfig, pool: openCodePool,
     });
     app.route("/", createChatRoutes(pool, undefined, undefined, router, clientPool));
     app.route("/", createMessagesRoutes(pool, undefined, undefined, router, clientPool));
@@ -157,7 +157,7 @@ describe("OCGo Responses via the app route and real loopback transport", () => {
     expect(received).toEqual([]);
   });
 
-  it("returns an OCGo error without Codex or Custom fallback when no key is eligible", async () => {
+  it("returns an OpenCode error without Codex or Custom fallback when no key is eligible", async () => {
     credentials = [{ ...credential, enabled: false }];
     const response = await send();
     expect(response.status).toBe(503);
@@ -195,7 +195,7 @@ describe("OCGo Responses via the app route and real loopback transport", () => {
     expect(await response.text()).toContain("response.completed");
     expect(received.map(({ headers }) => (headers as { authorization: string }).authorization))
       .toEqual([`Bearer ${key}`, "Bearer fake-second"]);
-    const snapshot = ocgoPool.snapshot();
+    const snapshot = openCodePool.snapshot();
     expect(snapshot).toMatchObject({
       officialQuota: null,
       clientRequests: { started: 1, succeeded: 1, failed: 0, cancelled: 0, inFlight: 0 },
@@ -280,7 +280,7 @@ describe("OCGo Responses via the app route and real loopback transport", () => {
     expect(await closed).toBe(true);
     expect(releaseSlot).toHaveBeenCalledOnce();
     expect(received).toHaveLength(1);
-    expect(ocgoPool.snapshot()).toMatchObject({
+    expect(openCodePool.snapshot()).toMatchObject({
       clientRequests: { started: 2, failed: 1, cancelled: 1, succeeded: 0, inFlight: 0 },
       credentials: [{ upstreamAttempts: { started: 1, cancelled: 1, inFlight: 0 } }],
     });
@@ -288,7 +288,7 @@ describe("OCGo Responses via the app route and real loopback transport", () => {
     expect((await send()).status).toBe(200);
   });
 
-  it.each(["/v1/responses/compact", "/v1/responses/review", "/v1/alpha/search"])("rejects OCGo on %s without contacting any provider", async (path) => {
+  it.each(["/v1/responses/compact", "/v1/responses/review", "/v1/alpha/search"])("rejects OpenCode on %s without contacting any provider", async (path) => {
     const response = await send({}, master, path);
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({ error: { code: "ocgo_unsupported_endpoint" } });
@@ -305,7 +305,7 @@ describe("OCGo Responses via the app route and real loopback transport", () => {
     ["/v1/images/generations", { prompt: "Hello" }],
     ["/v1/images/edits", {}],
     ["/v1/embeddings", {}],
-  ] as const)("rejects OCGo on incompatible endpoint %s", async (path, body) => {
+  ] as const)("rejects OpenCode on incompatible endpoint %s", async (path, body) => {
     const response = await send(body, master, path);
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({ error: { code: "ocgo_unsupported_endpoint" } });

@@ -389,7 +389,7 @@ export function createModelRoutes(apiKeyPool?: ApiKeyPool, clientKeyPool?: Clien
     return c.json({
       // Kept for API compatibility; the family is always available now.
       enabled: true,
-      legacy_ocgo_prefix: config.opencode.legacy_ocgo_prefix,
+      legacy_prefix: config.opencode.legacy_prefix,
       cache_header_aggregation: config.opencode.cache_header_aggregation,
       rust_routing: {
         enabled: config.opencode.rust_routing.enabled,

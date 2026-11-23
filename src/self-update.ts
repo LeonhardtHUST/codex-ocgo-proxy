@@ -77,7 +77,7 @@ function hardRestart(cwd: string): void {
 
 const execFileAsync = promisify(execFile);
 
-// The unofficial OCGo desktop build has no auto-update channel.
+// The unofficial OpenCode desktop build has no auto-update channel.
 declare const __OCX_BUILD__: boolean;
 const IS_OCX_BUILD = typeof __OCX_BUILD__ !== "undefined" && __OCX_BUILD__;
 const GITHUB_REPO = "icebear0828/codex-proxy";
@@ -514,7 +514,7 @@ export type UpdateProgressCallback = (step: string, status: "running" | "done" |
 export async function applyProxySelfUpdate(
   onProgress?: UpdateProgressCallback,
 ): Promise<{ started: boolean; restarting?: boolean; error?: string }> {
-  if (IS_OCX_BUILD) return { started: false, error: "Install OCGo updates manually from the fork's Releases page." };
+  if (IS_OCX_BUILD) return { started: false, error: "Install OpenCode updates manually from the fork's Releases page." };
   if (_proxyUpdateInProgress) {
     return { started: false, error: "Update already in progress" };
   }

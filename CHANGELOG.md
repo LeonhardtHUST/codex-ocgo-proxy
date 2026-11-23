@@ -62,6 +62,12 @@
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
+
 ### Fixed
 
 - **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
@@ -81,6 +87,12 @@
 
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
 
 ### Fixed
 
@@ -420,6 +432,12 @@
 
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
 
 ### Fixed
 
@@ -1045,6 +1063,12 @@
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
+
 ### Fixed
 
 - **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
@@ -1222,6 +1246,12 @@
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
+
 ### Fixed
 
 - **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
@@ -1253,6 +1283,12 @@
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
+
 ### Fixed
 
 - **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
@@ -1279,6 +1315,12 @@
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
+
 ### Fixed
 
 - **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
@@ -1303,6 +1345,12 @@
 
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
 
 ### Fixed
 
@@ -1341,6 +1389,12 @@
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
 
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
+
 ### Fixed
 
 - **SSE 帧容错**：WebSocket 透传路径不再把非 JSON 文本帧原样写成 `data: <text>`（客户端会报
@@ -1378,6 +1432,12 @@
 
 - **取消 `opencode.enabled` 开关**：opencode 家族与 `codex-official` 一样始终可用，能否服务只取决于凭据与各上游自身的开关。
   旧配置里的 `opencode.enabled: false` 仍能解析，但会被忽略并打印一次废弃提示；面板上「OCGo 尚未启用」的提示随之移除。
+
+### Changed
+
+- **内部命名统一**：`ocgo-*` 模块与 `OCGo*` 标识符全部改为 `opencode-*` / `OpenCode*`，包括路由结果标签（`kind: "opencode"`）
+  与 sidecar 适配器 tag（`opencode-sidecar`）；凭据文件由 `data/ocgo-keys.json` 改名为 `data/opencode-keys.json`，
+  首次构造时自动移动旧文件。仅保留真正的兼容面：`ocgo:` 模型前缀、`ocgo_*` 错误码、旧 `ocgo:` 配置段（迁移入口）。
 
 ### Fixed
 

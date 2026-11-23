@@ -1,10 +1,10 @@
 import { expect, it } from "vitest";
-import { OCGoUsageCounter, readOCGoTokens } from "@src/auth/ocgo-usage.js";
+import { OpenCodeUsageCounter, readOpenCodeTokens } from "@src/auth/opencode-usage.js";
 
 it("counts reported zero and cached tokens separately without inventing missing counts", () => {
-  const usage = new OCGoUsageCounter();
-  usage.begin()("succeeded", readOCGoTokens({ usage: { input_tokens: 12, output_tokens: 0, input_tokens_details: { cached_tokens: 4 } } }));
-  usage.begin()("succeeded", readOCGoTokens({ usage: { output_tokens: -1, input_tokens: "7" } }));
+  const usage = new OpenCodeUsageCounter();
+  usage.begin()("succeeded", readOpenCodeTokens({ usage: { input_tokens: 12, output_tokens: 0, input_tokens_details: { cached_tokens: 4 } } }));
+  usage.begin()("succeeded", readOpenCodeTokens({ usage: { output_tokens: -1, input_tokens: "7" } }));
   expect(usage.snapshot()).toMatchObject({
     started: 2, succeeded: 2, inFlight: 0,
     inputTokens: { total: 12, reported: 1, unknown: 1 },
@@ -14,7 +14,7 @@ it("counts reported zero and cached tokens separately without inventing missing 
 });
 
 it("settles an attempt only once and does not count in-flight samples as unknown", () => {
-  const usage = new OCGoUsageCounter();
+  const usage = new OpenCodeUsageCounter();
   const settle = usage.begin();
   expect(usage.snapshot()).toMatchObject({ inFlight: 1, inputTokens: { total: null, unknown: 0 } });
   settle("cancelled");

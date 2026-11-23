@@ -26,14 +26,14 @@ afterEach(() => {
 describe("opencode namespace in the router", () => {
   it("keeps the legacy ocgo shape untouched", () => {
     const router = makeRouter();
-    router.enableOCGoNamespace();
+    router.enableOpenCodeNamespace();
     expect(router.resolveMatch("ocgo:kimi-k2.5")).toEqual({
-      kind: "ocgo",
+      kind: "opencode",
       resolvedModel: "ocgo:kimi-k2.5",
       modelId: "kimi-k2.5",
     });
     expect(router.resolveMatch(" ocgo:shared-model ")).toEqual({
-      kind: "ocgo",
+      kind: "opencode",
       resolvedModel: "ocgo:shared-model",
       modelId: "shared-model",
     });
@@ -41,26 +41,26 @@ describe("opencode namespace in the router", () => {
 
   it("routes every opencode namespace to the ocgo dispatch path", () => {
     const router = makeRouter();
-    router.enableOCGoNamespace();
-    expect(router.resolveMatch("opencode:glm-5.3")).toMatchObject({ kind: "ocgo", modelId: "glm-5.3" });
-    expect(router.resolveMatch("opencode-zen:glm-5.3")).toMatchObject({ kind: "ocgo", modelId: "glm-5.3", tier: "zen" });
-    expect(router.resolveMatch("opencode-go:minimax-m3")).toMatchObject({ kind: "ocgo", modelId: "minimax-m3", tier: "go" });
-    expect(router.resolveMatch("opencode-zen-free:big-pickle")).toMatchObject({ kind: "ocgo", modelId: "big-pickle", tier: "zen-free" });
+    router.enableOpenCodeNamespace();
+    expect(router.resolveMatch("opencode:glm-5.3")).toMatchObject({ kind: "opencode", modelId: "glm-5.3" });
+    expect(router.resolveMatch("opencode-zen:glm-5.3")).toMatchObject({ kind: "opencode", modelId: "glm-5.3", tier: "zen" });
+    expect(router.resolveMatch("opencode-go:minimax-m3")).toMatchObject({ kind: "opencode", modelId: "minimax-m3", tier: "go" });
+    expect(router.resolveMatch("opencode-zen-free:big-pickle")).toMatchObject({ kind: "opencode", modelId: "big-pickle", tier: "zen-free" });
   });
 
   it("rejects the legacy prefix when the switch is off", () => {
     const router = makeRouter();
-    router.enableOCGoNamespace();
-    router.setLegacyOCGoPrefix(false);
+    router.enableOpenCodeNamespace();
+    router.setLegacyOpenCodePrefix(false);
     expect(router.resolveMatch("ocgo:kimi-k2.5")).toMatchObject({ kind: "not-found" });
-    expect(router.resolveMatch("opencode:kimi-k2.5")).toMatchObject({ kind: "ocgo" });
+    expect(router.resolveMatch("opencode:kimi-k2.5")).toMatchObject({ kind: "opencode" });
   });
 
   it("keeps invalid ids on the ocgo path so the handler can reject them", () => {
     const router = makeRouter();
-    router.enableOCGoNamespace();
-    expect(router.resolveMatch("ocgo:")).toEqual({ kind: "ocgo", resolvedModel: "ocgo:" });
-    expect(router.resolveMatch("ocgo:zen/wrong")).toEqual({ kind: "ocgo", resolvedModel: "ocgo:zen/wrong" });
+    router.enableOpenCodeNamespace();
+    expect(router.resolveMatch("ocgo:")).toEqual({ kind: "opencode", resolvedModel: "ocgo:" });
+    expect(router.resolveMatch("ocgo:zen/wrong")).toEqual({ kind: "opencode", resolvedModel: "ocgo:zen/wrong" });
   });
 
   it("exposes the codex fallback provider as an explicit route", () => {

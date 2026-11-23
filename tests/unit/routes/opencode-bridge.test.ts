@@ -1,7 +1,7 @@
 /** @vitest-environment node */
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OCGoLease, OCGoSelection } from "@src/auth/ocgo-pool.js";
+import type { OpenCodeLease, OpenCodeSelection } from "@src/auth/opencode-pool.js";
 import { OpenCodeConfigSchema } from "@src/opencode/config.js";
 import { X_OPENCODE_SESSION_HEADER } from "@src/proxy/opencode-headers.js";
 import {
@@ -15,7 +15,7 @@ vi.mock("@src/routes/shared/direct-request-handler.js", () => ({
   handleDirectRequest: (...args: unknown[]) => directRequestMock(...args),
 }));
 
-function fakeLease(): OCGoLease & { completed: number; released: number } {
+function fakeLease(): OpenCodeLease & { completed: number; released: number } {
   const lease = {
     credentialId: "c1",
     apiKey: "secret-key",
@@ -30,7 +30,7 @@ function fakeLease(): OCGoLease & { completed: number; released: number } {
   return lease;
 }
 
-function bridgeWith(selection: OCGoSelection, opencode = OpenCodeConfigSchema.parse({ enabled: true })) {
+function bridgeWith(selection: OpenCodeSelection, opencode = OpenCodeConfigSchema.parse({ enabled: true })) {
   return {
     legacy: { enabled: false, base_url: "http://127.0.0.1:8787/v1", timeout_seconds: 180 },
     opencode,
@@ -197,7 +197,7 @@ describe("opencode bridge: dispatch", () => {
     expect(response.status).toBe(200);
     await response.text();
     const call = directRequestMock.mock.calls.at(-1)?.[0] as { upstream: { tag: string } };
-    expect(call.upstream.tag).toBe("ocgo");
+    expect(call.upstream.tag).toBe("opencode-sidecar");
     expect(lease.released).toBe(1);
   });
 });

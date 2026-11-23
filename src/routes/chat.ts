@@ -1,4 +1,4 @@
-import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
+import { unsupportedOpenCodeEndpoint } from "./opencode-responses.js";
 import { handleOpenCodeDirect, type OpenCodeBridge } from "./opencode-bridge.js";
 import { handleProviderRoute } from "./provider-bridge.js";
 import { Hono } from "hono";
@@ -148,7 +148,7 @@ export function createChatRoutes(
 
     // OpenCode models go through the bridge below once the request is translated;
     // without a bridge configured they stay unsupported, exactly as before.
-    if (routeMatch.kind === "ocgo" && !opencodeBridge) return unsupportedOCGoEndpoint(c);
+    if (routeMatch.kind === "opencode" && !opencodeBridge) return unsupportedOpenCodeEndpoint(c);
     if (routeMatch.kind === "not-found") {
       c.status(404);
       return c.json(formatModelNotFound(req.model));
@@ -197,7 +197,7 @@ export function createChatRoutes(
       }),
     });
 
-    if (routeMatch.kind === "ocgo" && opencodeBridge) {
+    if (routeMatch.kind === "opencode" && opencodeBridge) {
       return handleOpenCodeDirect({
         c,
         bridge: opencodeBridge,

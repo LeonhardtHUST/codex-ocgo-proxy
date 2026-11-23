@@ -1,15 +1,15 @@
-export type OCGoOutcome = "succeeded" | "failed" | "cancelled";
+export type OpenCodeOutcome = "succeeded" | "failed" | "cancelled";
 const fields = ["inputTokens", "outputTokens", "cachedTokens"] as const;
 type TokenField = typeof fields[number];
-export type OCGoTokens = Partial<Record<TokenField, number>>;
+export type OpenCodeTokens = Partial<Record<TokenField, number>>;
 
 const record = (value: unknown): Record<string, unknown> | undefined =>
   value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
 
-export function readOCGoTokens(response: unknown): OCGoTokens {
+export function readOpenCodeTokens(response: unknown): OpenCodeTokens {
   const usage = record(record(response)?.usage);
   const pairs = [usage?.input_tokens, usage?.output_tokens, record(usage?.input_tokens_details)?.cached_tokens];
-  const result: OCGoTokens = {};
+  const result: OpenCodeTokens = {};
   fields.forEach((field, i) => {
     const value = pairs[i];
     if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) result[field] = value;
@@ -18,12 +18,12 @@ export function readOCGoTokens(response: unknown): OCGoTokens {
 }
 
 /** Process-local aggregate. No request payload, caller identity or credential is stored. */
-export class OCGoUsageCounter {
+export class OpenCodeUsageCounter {
   readonly #totals = { started: 0, succeeded: 0, failed: 0, cancelled: 0 };
   readonly #tokens = { inputTokens: 0, outputTokens: 0, cachedTokens: 0 };
   readonly #reported = { inputTokens: 0, outputTokens: 0, cachedTokens: 0 };
 
-  begin(): (outcome: OCGoOutcome, usage?: OCGoTokens) => void {
+  begin(): (outcome: OpenCodeOutcome, usage?: OpenCodeTokens) => void {
     this.#totals.started++;
     let done = false;
     return (outcome, usage) => {

@@ -6,9 +6,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSession, _resetForTest } from "@src/auth/dashboard-session.js";
-import { OCGoKeyStore } from "@src/auth/ocgo-key-store.js";
-import { OCGoPool } from "@src/auth/ocgo-pool.js";
-import { createOCGoAdminRoutes } from "@src/routes/admin/ocgo.js";
+import { OpenCodeKeyStore } from "@src/auth/opencode-key-store.js";
+import { OpenCodePool } from "@src/auth/opencode-pool.js";
+import { createOpenCodeAdminRoutes } from "@src/routes/admin/opencode.js";
 
 vi.mock("@src/config.js", () => ({ getConfig: () => ({ session: { ttl_minutes: 5 } }) }));
 
@@ -16,16 +16,16 @@ const path = "/admin/opencode/keys";
 const input = { name: "Go test", apiKey: "fake-ocgo-primary-key", models: ["mock-model"], quotaGroup: "confirmed-owner" };
 const master = { Authorization: "Bearer fake-app-master" };
 
-describe("OCGo administrator endpoints", () => {
+describe("OpenCode administrator endpoints", () => {
   let dir: string;
   let server: Server | undefined;
-  let app: ReturnType<typeof createOCGoAdminRoutes>;
-  let store: OCGoKeyStore;
+  let app: ReturnType<typeof createOpenCodeAdminRoutes>;
+  let store: OpenCodeKeyStore;
   let config: { enabled: boolean; base_url: string; timeout_seconds: number };
 
   function mount() {
-    store = new OCGoKeyStore(join(dir, "ocgo-keys.json"));
-    app = createOCGoAdminRoutes({ config, store, pool: new OCGoPool(store), getMasterKey: () => "fake-app-master" });
+    store = new OpenCodeKeyStore(join(dir, "ocgo-keys.json"));
+    app = createOpenCodeAdminRoutes({ config, store, pool: new OpenCodePool(store), getMasterKey: () => "fake-app-master" });
   }
 
   beforeEach(async () => {
@@ -102,7 +102,7 @@ describe("OCGo administrator endpoints", () => {
   it("verifies only the selected stored Key through one real loopback request", async () => {
     const first = await add();
     const second = await add({ ...input, apiKey: "fake-ocgo-other-key" });
-    // The `enabled` gate is retired, so an unreachable upstream now reports 502 instead\n    // of a misleading "OCGo is disabled" 503.\n    expect((await request("POST", `/${second}/verify`, { model: "mock-model" })).status).toBe(502);
+    // The `enabled` gate is retired, so an unreachable upstream now reports 502 instead\n    // of a misleading "OpenCode is disabled" 503.\n    expect((await request("POST", `/${second}/verify`, { model: "mock-model" })).status).toBe(502);
     const seen: string[] = [];
     let deny = false;
     server = createServer((req, res) => {

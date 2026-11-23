@@ -18,7 +18,7 @@ const mockConfig = {
   server: { proxy_api_key: null as string | null },
   opencode: {
     enabled: false,
-    legacy_ocgo_prefix: true,
+    legacy_prefix: true,
     cache_header_aggregation: true,
     rust_routing: { enabled: false, port: 4099, legacy_sidecar: false },
   },

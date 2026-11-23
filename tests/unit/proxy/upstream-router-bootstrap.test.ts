@@ -41,7 +41,7 @@ function addCustom(pool: ApiKeyPool, model: string) {
 const makeRuntime = (pool = new ApiKeyPool(createMemoryPersistence()), routing = {}, adapters = new Map<string, UpstreamAdapter>()) =>
   createRuntimeUpstreamRouter(adapters, routing, pool, () => mockAdapter("custom"));
 
-describe("OCGo namespace preparation", () => {
+describe("OpenCode namespace preparation", () => {
   it("leaves old prefixed entries and their routing intact by default", () => {
     const pool = new ApiKeyPool(createMemoryPersistence());
     const router = makeRuntime(pool);
@@ -53,13 +53,13 @@ describe("OCGo namespace preparation", () => {
     const pool = new ApiKeyPool(createMemoryPersistence());
     const router = makeRuntime(pool);
     const entry = addCustom(pool, "shared-model");
-    router.enableOCGoNamespace();
+    router.enableOpenCodeNamespace();
     expect(router.resolveMatch(" ocgo:shared-model ")).toEqual({
-      kind: "ocgo", resolvedModel: "ocgo:shared-model", modelId: "shared-model",
+      kind: "opencode", resolvedModel: "ocgo:shared-model", modelId: "shared-model",
     });
     expect(pool.getEntry(entry.id)?.lastUsedAt).toBeNull();
-    expect(router.resolveMatch("ocgo:")).toEqual({ kind: "ocgo", resolvedModel: "ocgo:" });
-    expect(router.resolveMatch("ocgo:zen/wrong")).toEqual({ kind: "ocgo", resolvedModel: "ocgo:zen/wrong" });
+    expect(router.resolveMatch("ocgo:")).toEqual({ kind: "opencode", resolvedModel: "ocgo:" });
+    expect(router.resolveMatch("ocgo:zen/wrong")).toEqual({ kind: "opencode", resolvedModel: "ocgo:zen/wrong" });
     expect(router.resolveMatch("shared-model").kind).toBe("api-key");
     expect(router.resolveMatch("gpt-5.5").kind).toBe("codex");
     expect(() => addCustom(pool, " ocgo:late-entry ")).toThrow(/prefix is reserved/);
@@ -72,22 +72,22 @@ describe("OCGo namespace preparation", () => {
     const entry = addCustom(pool, "ocgo:legacy-model");
     pool.setStatus(entry.id, "disabled");
     const router = makeRuntime(pool);
-    expect(() => router.enableOCGoNamespace()).toThrow(/Cannot enable OCGo/);
+    expect(() => router.enableOpenCodeNamespace()).toThrow(/Cannot enable OpenCode/);
     pool.setStatus(entry.id, "active");
     expect(router.resolveMatch("ocgo:legacy-model").kind).toBe("api-key");
   });
 
   it("refuses existing model routing, Custom provider, aliases and catalog IDs", () => {
     const pool = new ApiKeyPool(createMemoryPersistence());
-    expect(() => makeRuntime(pool, { "ocgo:legacy": "openai" }).enableOCGoNamespace()).toThrow(/Cannot enable OCGo/);
-    expect(() => makeRuntime(pool, {}, new Map([["ocgo", mockAdapter("ocgo")]])).enableOCGoNamespace()).toThrow(/Cannot enable OCGo/);
+    expect(() => makeRuntime(pool, { "ocgo:legacy": "openai" }).enableOpenCodeNamespace()).toThrow(/Cannot enable OpenCode/);
+    expect(() => makeRuntime(pool, {}, new Map([["opencode-sidecar", mockAdapter("opencode-sidecar")]])).enableOpenCodeNamespace()).toThrow(/Cannot enable OpenCode/);
     vi.mocked(getModelAliases).mockReturnValueOnce({ "ocgo:legacy": "gpt-5.5" });
-    expect(() => makeRuntime(pool).enableOCGoNamespace()).toThrow(/Cannot enable OCGo/);
+    expect(() => makeRuntime(pool).enableOpenCodeNamespace()).toThrow(/Cannot enable OpenCode/);
     vi.mocked(getModelAliases).mockReturnValueOnce({ "legacy": "ocgo:model" });
-    expect(() => makeRuntime(pool).enableOCGoNamespace()).toThrow(/Cannot enable OCGo/);
+    expect(() => makeRuntime(pool).enableOpenCodeNamespace()).toThrow(/Cannot enable OpenCode/);
     const model = getModelCatalog()[0];
     vi.mocked(getModelCatalog).mockReturnValueOnce([{ ...model, id: "ocgo:legacy" }]);
-    expect(() => makeRuntime(pool).enableOCGoNamespace()).toThrow(/Cannot enable OCGo/);
+    expect(() => makeRuntime(pool).enableOpenCodeNamespace()).toThrow(/Cannot enable OpenCode/);
   });
 });
 

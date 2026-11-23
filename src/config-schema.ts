@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OCGoConfigSchema } from "./ocgo-config.js";
+import { LegacyOpenCodeConfigSchema } from "./opencode-legacy-config.js";
 import { OpenCodeConfigSchema } from "./opencode/config.js";
 
 export const ROTATION_STRATEGIES = ["least_used", "round_robin", "sticky"] as const;
@@ -298,7 +298,7 @@ export const ConfigSchema = z.object({
       }),
     ).default({}),
   }).default({}),
-  ocgo: OCGoConfigSchema,
+  ocgo: LegacyOpenCodeConfigSchema,
   /** OpenCode provider family (go / zen / zen-free) — see docs/OPENCODEX_ROUTER_DESIGN.md §2. */
   opencode: OpenCodeConfigSchema,
   /** Explicit model → provider name routing table. */

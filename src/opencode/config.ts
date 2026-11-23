@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ocgoResponsesUrl } from "../ocgo-config.js";
+import { opencodeResponsesUrl } from "../opencode-legacy-config.js";
 
 /**
  * OpenCode 配置段（OpenCodeX-Router）。
@@ -9,14 +9,14 @@ import { ocgoResponsesUrl } from "../ocgo-config.js";
  *   zen        https://opencode.ai/inference            （按量付费 key）
  *   zen_free   与 zen 同 base，只服务零价模型；pool_all_keys 开启后全部凭据参与轮换
  *
- * 旧的 `ocgo` 配置段仍可读入，由 `migrateLegacyOCGoSection` 映射到本段（见 src/config.ts）。
+ * 旧的 `ocgo` 配置段仍可读入，由 `migrateLegacyOpenCodeSection` 映射到本段（见 src/config.ts）。
  */
 
 const LOOPBACK_HINT = "必须是 http://127.0.0.1:<port>/v1 或 http://[::1]:<port>/v1 形式的数字回环地址";
 
-/** 数字回环地址校验，复用 OCGo 时期的规则，避免 DNS 与模糊 URL 形式。 */
+/** 数字回环地址校验，复用 OpenCode 时期的规则，避免 DNS 与模糊 URL 形式。 */
 export function isLoopbackApiBaseUrl(value: string): boolean {
-  return ocgoResponsesUrl(value) !== undefined;
+  return opencodeResponsesUrl(value) !== undefined;
 }
 
 export const OpenCodeGoUpstreamSchema = z.object({
@@ -80,7 +80,7 @@ export const OpenCodeConfigSchema = z.object({
    */
   project_seed: z.string().trim().min(1).max(256).optional(),
   /** 接受 `ocgo:` 作为 `opencode:` 的别名（旧配置兼容）。 */
-  legacy_ocgo_prefix: z.boolean().default(true),
+  legacy_prefix: z.boolean().default(true),
   http_timeout_seconds: z.number().int().min(1).max(600).default(180),
   rust_routing: OpenCodeRustRoutingSchema,
 }).strict().default({});
@@ -95,14 +95,14 @@ export type OpenCodeRustRoutingConfig = z.infer<typeof OpenCodeRustRoutingSchema
  * 而不是 zen 的公网 base_url——两者含义不同，混用会把请求发到错误的上游。
  * 显式写了 `opencode` 段时以新段为准，不再覆盖。
  */
-export function migrateLegacyOCGoSection(raw: Record<string, unknown>): void {
+export function migrateLegacyOpenCodeSection(raw: Record<string, unknown>): void {
   const legacy = raw.ocgo;
   if (!raw.opencode && legacy && typeof legacy === "object" && !Array.isArray(legacy)) {
     const source = legacy as Record<string, unknown>;
     const enabled = typeof source.enabled === "boolean" ? source.enabled : false;
     const mapped: Record<string, unknown> = {
       enabled,
-      legacy_ocgo_prefix: true,
+      legacy_prefix: true,
     };
     if (typeof source.timeout_seconds === "number") mapped.http_timeout_seconds = source.timeout_seconds;
     const rust: Record<string, unknown> = { enabled, legacy_sidecar: true };

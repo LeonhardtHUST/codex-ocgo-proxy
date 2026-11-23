@@ -12,10 +12,10 @@
 
 import type { Context } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
-import type { OCGoLease, OCGoPool, OCGoSession } from "../auth/ocgo-pool.js";
+import type { OpenCodeLease, OpenCodePool, OpenCodeSession } from "../auth/opencode-pool.js";
 import type { AppConfig } from "../config-schema.js";
 import type { CodexResponsesRequest } from "../proxy/codex-types.js";
-import { OCGoUpstream } from "../proxy/ocgo-upstream.js";
+import { OpenCodeUpstream } from "../proxy/opencode-sidecar-upstream.js";
 import { X_OPENCODE_SESSION_HEADER } from "../proxy/opencode-headers.js";
 import type { UpstreamAdapter } from "../proxy/upstream-adapter.js";
 import type { OpenCodeConfig } from "../opencode/config.js";
@@ -23,20 +23,20 @@ import { createOpenCodeUpstream, isOpenCodeServing } from "../opencode/dispatch.
 import type { OpenCodeTier } from "../opencode/namespace.js";
 import { stripOpenCodeNamespace } from "../opencode/namespace.js";
 import { isRecord } from "../translation/shared-utils.js";
-import { ocgoErrorResponse } from "./ocgo-responses.js";
+import { opencodeErrorResponse } from "./opencode-responses.js";
 import { handleDirectRequest } from "./shared/direct-request-handler.js";
 import type { HandleDirectRequestOptions } from "./shared/proxy-handler-types.js";
 
 export interface OpenCodeBridge {
-  /** Legacy OCGo section (enabled switch + loopback fallback). */
+  /** Legacy OpenCode section (enabled switch + loopback fallback). */
   legacy: AppConfig["ocgo"];
   /** New OpenCode section; undefined on installations that never migrated. */
   opencode?: OpenCodeConfig;
-  pool: Pick<OCGoPool, "acquire" | "beginClientRequest">;
+  pool: Pick<OpenCodePool, "acquire" | "beginClientRequest">;
 }
 
 /** Session identity for pool affinity: header first, then the translated cache key. */
-export function resolveOpenCodeSession(c: Context, cacheKey: string | undefined): OCGoSession | undefined {
+export function resolveOpenCodeSession(c: Context, cacheKey: string | undefined): OpenCodeSession | undefined {
   const id = c.req.header(X_OPENCODE_SESSION_HEADER)?.trim() || cacheKey?.trim() || "";
   if (!id || id.length > 256) return undefined;
   if (c.get("authRole") === "master") return { id, caller: { kind: "master" } };
@@ -48,7 +48,7 @@ export function resolveOpenCodeSession(c: Context, cacheKey: string | undefined)
 }
 
 /** Wrap a response body so the lease is released when it settles. */
-export function withLeaseRelease(response: Response, lease: OCGoLease): Response {
+export function withLeaseRelease(response: Response, lease: OpenCodeLease): Response {
   const body = response.body;
   if (!body) {
     lease.complete();
@@ -102,24 +102,24 @@ export interface OpenCodeDirectOptions {
 export async function handleOpenCodeDirect(options: OpenCodeDirectOptions): Promise<Response> {
   const { c, bridge, route } = options;
   if (!isOpenCodeServing({ legacyEnabled: bridge.legacy.enabled, opencode: bridge.opencode })) {
-    return ocgoErrorResponse(c, 503, "ocgo_unavailable", "OpenCode is not available");
+    return opencodeErrorResponse(c, 503, "ocgo_unavailable", "OpenCode is not available");
   }
 
-  const bareId = route.modelId ?? stripOpenCodeNamespace(route.resolvedModel, { legacyOcgo: true }) ?? "";
-  if (!bareId) return ocgoErrorResponse(c, 400, "ocgo_invalid_model", "Invalid OpenCode model ID");
+  const bareId = route.modelId ?? stripOpenCodeNamespace(route.resolvedModel, { legacyOpenCode: true }) ?? "";
+  if (!bareId) return opencodeErrorResponse(c, 400, "ocgo_invalid_model", "Invalid OpenCode model ID");
 
   const tier = route.tier as OpenCodeTier | undefined;
   const session = resolveOpenCodeSession(c, options.codexRequest.prompt_cache_key ?? undefined);
   const selection = bridge.pool.acquire(bareId, session);
   if (selection.kind === "busy") {
-    return ocgoErrorResponse(c, 503, "ocgo_busy", "OpenCode credentials for this model are busy");
+    return opencodeErrorResponse(c, 503, "ocgo_busy", "OpenCode credentials for this model are busy");
   }
   if (selection.kind === "backoff") {
     c.header("Retry-After", String(selection.retryAfterSeconds));
-    return ocgoErrorResponse(c, 429, "ocgo_backoff", "OpenCode credentials for this model are temporarily unavailable");
+    return opencodeErrorResponse(c, 429, "ocgo_backoff", "OpenCode credentials for this model are temporarily unavailable");
   }
   if (selection.kind !== "selected") {
-    return ocgoErrorResponse(c, 503, "ocgo_no_credential", "No OpenCode credential is available for this model");
+    return opencodeErrorResponse(c, 503, "ocgo_no_credential", "No OpenCode credential is available for this model");
   }
 
   const lease = selection.lease;
@@ -133,10 +133,10 @@ export async function handleOpenCodeDirect(options: OpenCodeDirectOptions): Prom
           apiKey: lease.apiKey,
           ...(session ? { sessionId: session.id } : {}),
         })
-      : new OCGoUpstream(bridge.legacy.base_url, lease.apiKey, bridge.legacy.timeout_seconds);
+      : new OpenCodeUpstream(bridge.legacy.base_url, lease.apiKey, bridge.legacy.timeout_seconds);
   } catch {
     lease.release();
-    return ocgoErrorResponse(c, 502, "ocgo_request_failed", "OpenCode upstream could not be prepared");
+    return opencodeErrorResponse(c, 502, "ocgo_request_failed", "OpenCode upstream could not be prepared");
   }
 
   const directReq: HandleDirectRequestOptions["req"] = {
@@ -157,7 +157,7 @@ export async function handleOpenCodeDirect(options: OpenCodeDirectOptions): Prom
     // Unknown transport failures carry no healthy signal for the pool; just free the key.
     lease.release();
     const status = (error as { status?: number }).status;
-    return ocgoErrorResponse(
+    return opencodeErrorResponse(
       c,
       (typeof status === "number" && status >= 400 ? status : 502) as ContentfulStatusCode,
       "ocgo_request_failed",

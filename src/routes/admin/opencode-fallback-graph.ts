@@ -1,7 +1,7 @@
 /**
  * Admin API for the fallback graph.
  *
- * Mirrors the OCGo admin auth model: master key bearer or a dashboard session; writes
+ * Mirrors the OpenCode admin auth model: master key bearer or a dashboard session; writes
  * additionally require a same-origin hint so a cross-site form cannot rewrite the graph.
  */
 

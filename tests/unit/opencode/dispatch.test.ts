@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolve } from "node:path";
-import { OCGoUpstream } from "@src/proxy/ocgo-upstream.js";
+import { OpenCodeUpstream } from "@src/proxy/opencode-sidecar-upstream.js";
 import { OpenCodeAdapter } from "@src/opencode/adapter.js";
 import { RustRouterAdapter } from "@src/opencode/rust-adapter.js";
 import { setActiveRustRouter } from "@src/opencode/rust-router.js";
@@ -41,7 +41,7 @@ describe("opencode dispatch", () => {
       rust_routing: { enabled: true, legacy_sidecar: true, base_url: "http://127.0.0.1:8787/v1" },
     });
     const upstream = createOpenCodeUpstream({ config, modelId: "glm-5.3", apiKey: "k", catalog });
-    expect(upstream).toBeInstanceOf(OCGoUpstream);
+    expect(upstream).toBeInstanceOf(OpenCodeUpstream);
   });
 
   it("degrades to the TypeScript adapter when the router is enabled but not ready", () => {

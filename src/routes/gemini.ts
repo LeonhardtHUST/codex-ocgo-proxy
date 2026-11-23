@@ -5,7 +5,7 @@
  * POST /v1beta/models/{model}:countTokens — local token estimate (no upstream)
  */
 
-import { unsupportedOCGoEndpoint } from "./ocgo-responses.js";
+import { unsupportedOpenCodeEndpoint } from "./opencode-responses.js";
 import { Hono } from "hono";
 import type { StatusCode } from "hono/utils/http-status";
 import type { GeminiErrorResponse } from "../types/gemini.js";
@@ -201,7 +201,7 @@ export function createGeminiRoutes(
       );
     }
 
-    if (upstreamRouter?.isOCGoModel?.(geminiModel)) return unsupportedOCGoEndpoint(c);
+    if (upstreamRouter?.isOpenCodeModel?.(geminiModel)) return unsupportedOpenCodeEndpoint(c);
 
     // countTokens is answered locally — it must never reach the upstream and
     // does not require an authenticated account (google-genai SDKs call it

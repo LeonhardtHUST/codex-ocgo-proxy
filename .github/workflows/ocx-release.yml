@@ -183,13 +183,13 @@ jobs:
       - name: OCGo unit and app-restart regression
         run: |
           npx vitest run \
-            tests/unit/auth/ocgo-pool.test.ts \
-            tests/unit/auth/ocgo-usage.test.ts \
-            tests/unit/routes/ocgo-admin.test.ts \
-            tests/unit/routes/ocgo-responses.test.ts \
-            tests/unit/proxy/ocgo-upstream.test.ts \
-            tests/unit/proxy/ocgo-loopback-contract.test.ts \
-            tests/integration/ocgo-app-restart.test.ts
+            tests/unit/auth/opencode-pool.test.ts \
+            tests/unit/auth/opencode-usage.test.ts \
+            tests/unit/routes/opencode-admin.test.ts \
+            tests/unit/routes/opencode-responses.test.ts \
+            tests/unit/proxy/opencode-upstream.test.ts \
+            tests/unit/proxy/opencode-loopback-contract.test.ts \
+            tests/integration/opencode-app-restart.test.ts
 
       - name: Web front-end regression (OCGo page)
         run: cd web && npx vitest run src/pages/OCGoKeysPage.test.tsx

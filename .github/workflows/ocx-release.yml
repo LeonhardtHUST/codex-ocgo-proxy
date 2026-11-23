@@ -192,7 +192,7 @@ jobs:
             tests/integration/opencode-app-restart.test.ts
 
       - name: Web front-end regression (OCGo page)
-        run: cd web && npx vitest run src/pages/OCGoKeysPage.test.tsx
+        run: cd web && npx vitest run src/pages/OpenCodeKeysPage.test.tsx
 
   # ── Build + smoke: Windows x64 ──────────────────────────────────────────
   build-windows:

@@ -9,7 +9,6 @@
 - `docs/recon/OPENCODE_UPSTREAM_MATRIX.md` —— 三个逻辑上游的端点、鉴权、字段、缓存与思考档位实测
 - `docs/recon/OCGO2API_RS_MAP.md` —— 参考 Rust 实现的保留 / 重构 / 放弃清单
 - `docs/recon/PRIOR_ART.md` —— GitHub 既有实现对照与 CREDITS 依据
-- `docs/recon/BRANDING_MAP.md` —— 个人印记与改名清单
 
 ---
 
